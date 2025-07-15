@@ -30,7 +30,7 @@ td {
 }
 
 b {
-    font-size: 1.2em;
+    font-size: 1.2em; /* これが「■ 合計時間（時間枠）」に適用されている */
 }
 
 input[type="checkbox"] {
@@ -51,7 +51,7 @@ input[type="checkbox"] {
 }
 
 .total-row {
-    font-size: 1.2em;
+    font-size: 1.2em; /* このサイズが基準 */
     color: #2f4f4f;
     display: flex;
     flex-direction: column;
@@ -60,10 +60,31 @@ input[type="checkbox"] {
 }
 
 .total-time {
-    font-size: 0.8em;
+    /* ここを修正・追加 */
+    font-size: 1em; /* total-rowからの相対値。1.2emの親から継承されるので、実質的には1.2emと同じになる */
     color: #ff0000;
     margin-bottom: 5px;
+    display: flex; /* 値と「時間」を横並びにするため */
+    align-items: center; /* 垂直方向中央揃え */
+    justify-content: center; /* 水平方向中央揃え */
+    font-weight: bold; /* 全体を太字に */
 }
+
+/* 合計時間の入力フィールドのスタイル調整 */
+#totalTime {
+    font-size: 1em; /* 親の.total-timeから継承されるので、1emで適切に拡大される */
+    font-weight: bold; /* 太字 */
+    color: #ff0000; /* 値の色 */
+    border: none; /* ボーダーをなくす */
+    background: transparent; /* 背景を透明に */
+    text-align: center; /* テキストを中央揃え */
+    padding: 0; /* 余計なパディングをなくす */
+    width: auto; /* 幅を自動調整 */
+    flex-shrink: 0; /* 縮小させない */
+    margin-right: 5px; /* 「時間」との間に少しスペース */
+    min-width: 50px; /* 最小幅を設定して、文字が短い場合でも安定させる */
+}
+
 
 #totalPrice.guidance-message {
     font-size: 1em; /* 少し大きめに */
