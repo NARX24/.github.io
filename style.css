@@ -1,0 +1,171 @@
+body {
+    background-color: #DDDDDD;
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+}
+
+#scroll-container {
+    max-height: calc(100vh - 350px); /* 予約ボタンの高さ分、さらに縮める */
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 250px; /* 必要に応じて調整 */
+}
+
+#form-container {
+    width: 100%;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    table-layout: auto;
+}
+
+td {
+    padding: 4px 8px;
+    vertical-align: top;
+    word-wrap: break-word;
+    max-width: 200px;
+}
+
+b {
+    font-size: 1.2em;
+}
+
+input[type="checkbox"] {
+    margin-right: 5px;
+}
+
+.total-row-wrapper {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: #DDDDDD;
+    padding: 10px;
+    text-align: center;
+    border-top: 1px solid #aaa;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
+}
+
+.total-row {
+    font-size: 1.2em;
+    color: #2f4f4f;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-right: 20px;
+}
+
+.total-time {
+    font-size: 0.8em;
+    color: #ff0000;
+    margin-bottom: 5px;
+}
+
+#totalPrice.guidance-message {
+    font-size: 1em; /* 少し大きめに */
+    color: #555555; /* グレー系の色 */
+    font-weight: normal; /* 太字ではない */
+}
+
+.copy-button {
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 10px;
+    transition: background-color 0.3s ease, opacity 0.3s ease; /* 透明度も変化させる */
+    /* 初期状態で非活性スタイルを適用 */
+    opacity: 0.5; 
+    pointer-events: none; 
+    cursor: default; 
+}
+
+/* コピーボタンの活性スタイル (上書き用) */
+.copy-button:not(.disabled) {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
+
+
+.menu-title {
+    font-size: 1.5em;
+    text-align: center;
+    margin: 10px 0;
+}
+
+.price {
+    font-size: 0.8em;
+    color: #555;
+}
+
+.set-detail {
+    display: block;
+    font-size: 0.6em;
+    color: #555;
+    margin-top: 2px;
+}
+
+#message-area {
+    margin-top: 10px;
+    color: green;
+    font-weight: bold;
+    display: none; /* 初期は非表示 */
+    width: 90%; /* 幅を調整 */
+    border: 1px solid #ccc;
+    padding: 10px;
+    background-color: #f9f9f9;
+    box-sizing: border-box; /* paddingとborderをwidthに含める */
+    resize: vertical; /* ユーザーが縦方向にリサイズできるようにする */
+    min-height: 80px; /* 最小高さを設定 */
+    max-height: 180px; /* 最大高さを設定 */
+    overflow-y: auto; /* 必要に応じてスクロールバーを表示 */
+    font-size: 0.9em; /* テキストのサイズ調整 */
+    line-height: 1.4; /* 行の高さ調整 */
+}
+
+#message-area.error {
+    color: red;
+    border-color: red;
+    background-color: #ffe6e6; /* エラー時の背景色を薄い赤に */
+}
+
+/* 新しい予約ボタンのスタイル */
+.reservation-button {
+    display: block; /* ブロック要素にして中央揃えしやすくする */
+    width: 80%; /* 幅を調整 */
+    max-width: 300px; /* 最大幅を設定 */
+    margin: 15px auto 0 auto; /* 上部のマージンを調整し、中央に */
+    padding: 15px 25px;
+    background-color: #28a745; /* 緑系の色 */
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    text-align: center;
+    text-decoration: none; /* リンクの下線を消す */
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease, opacity 0.3s ease; /* 透明度も変化させる */
+    /* 初期状態で非活性スタイルを適用 */
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+}
+
+.reservation-button:hover {
+    background-color: #218838; /* ホバー時の色 */
+}
+
+/* 予約ボタンの活性スタイル (上書き用) */
+.reservation-button:not(.disabled) {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
