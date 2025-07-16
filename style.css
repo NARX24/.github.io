@@ -81,12 +81,13 @@ input[type="checkbox"] {
     padding: 2px 5px; /* 内側の余白を調整 */
     
     text-align: center; /* テキストを中央揃え */
-    width: 60px; /* 固定幅に設定（表示される値に合わせて調整してください） */
-    max-width: 80px; /* 最大幅を設定し、それ以上広がらないようにする */
+    /* ここを修正 */
+    width: 40px; /* 幅をさらに小さく */
+    max-width: 60px; /* 最大幅も調整 */
     
     flex-shrink: 0; /* 縮小させない */
     margin-right: 5px; /* 「時間」との間に少しスペース */
-    min-width: 30px; /* 最小幅を設定して、文字が短い場合でも安定させる */
+    min-width: 35px; /* 最小幅も調整 */
 }
 
 
