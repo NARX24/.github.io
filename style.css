@@ -86,7 +86,7 @@ input[type="checkbox"] {
     
     flex-shrink: 0; /* 縮小させない */
     margin-right: 5px; /* 「時間」との間に少しスペース */
-    min-width: 20px; /* 最小幅を設定して、文字が短い場合でも安定させる */
+    min-width: 30px; /* 最小幅を設定して、文字が短い場合でも安定させる */
 }
 
 
