@@ -102,7 +102,7 @@ function getFinalParts(itemId, currentPath = new Set()) {
             finalParts.push(...getFinalParts(partId, currentPath));
         });
     }
-
+    
     currentPath.delete(itemId); // パスから削除
 
     return finalParts;
@@ -131,7 +131,7 @@ window.keisan = function() { // グローバルスコープに公開
         if (checkbox && checkbox.checked) {
             totalTime += item.time;
             totalPrice += item.price;
-
+            
             // 画面表示用のテキストを生成（詳細情報を含む）
             let setDetailText = '';
             if (item.type === "set" && item.parts && item.parts.length > 0) {
@@ -169,13 +169,13 @@ window.keisan = function() { // グローバルスコープに公開
     if (duplicatePartNames.length > 0) {
         const uniqueDuplicates = [...new Set(duplicatePartNames)]; 
         showMessage("選択したメニューに重複する部位が含まれています。\n選択を修正してください。\n重複部位: " + uniqueDuplicates.join("、"), true);
-
+        
         document.getElementById("totalTime").value = "選択を見直してください";
-        totalPriceDisplay.textContent = "料金合計: 0円（税込）";
+        totalPriceDisplay.textContent = "料金合計: 0円（税込）"; // 重複がある場合は0円表示
         totalPriceDisplay.classList.remove('guidance-message'); // スタイルを戻す
         copyText = "";
         currentTotalHours = "選択を見直してください"; 
-
+        
         copyButton.classList.add("disabled"); // 重複があればコピーボタンも非活性
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
         return;
@@ -184,7 +184,7 @@ window.keisan = function() { // グローバルスコープに公開
     const hours = Math.ceil(totalTime / 30) * 0.5;
     currentTotalHours = hours.toFixed(1);
     document.getElementById("totalTime").value = currentTotalHours;
-
+    
     if (totalPrice === 0) {
         totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
         totalPriceDisplay.classList.add('guidance-message'); // 新しいスタイルを適用
@@ -204,8 +204,9 @@ window.keisan = function() { // グローバルスコープに公開
 window.copyToClipboard = async function() { // グローバルスコープに公開
     const messageArea = document.getElementById("message-area");
     const reservationButton = document.getElementById("reservationButton");
-
+    
     if (copyText === "" || currentTotalHours === "0.0" || currentTotalHours === "選択を見直してください") {
+        // 重複エラー状態でない、または初期状態の場合にのみメッセージを表示
         if (!messageArea.classList.contains('error')) { 
             showMessage("コピーする内容がありません。まず項目を選択してください。", true);
         }
@@ -221,7 +222,7 @@ window.copyToClipboard = async function() { // グローバルスコープに公
     } catch (err) {
         // 自動コピーが失敗した場合（例: HTTPSでない、許可が得られないなど）
         console.error('Failed to copy: ', err);
-
+        
         // コピーしたい内容の開始と終了を示すマーカー
         const selectStartMarker = "---COPY_START---"; // ユニークな文字列
         const selectEndMarker = "---COPY_END---";   // ユニークな文字列
@@ -229,10 +230,10 @@ window.copyToClipboard = async function() { // グローバルスコープに公
         // textareaに表示するメッセージを構築
         // コピー対象部分にマーカーを挿入
         const fullDisplayMessage = `自動コピーに失敗しました。\n以下の枠内の**ハイライトされた内容をコピー**して手動で貼り付けてください。\n\n${selectStartMarker}${copyText}${selectEndMarker}\n\nご予約メニュー【${currentTotalHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`;
-
+        
         // メッセージエリアに表示
         showMessage(fullDisplayMessage, true); 
-
+        
         // textareaの値を一時的に取得
         let currentText = messageArea.value;
 
@@ -281,19 +282,21 @@ function showMessage(message, isError) {
         messageArea.classList.remove("error");
     }
     messageArea.style.display = "block";
-
+    
+    // エラーメッセージが表示された場合にのみスクロール
     if (isError) {
         messageArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 }
 
 // DOMContentLoaded イベントリスナーを使用
-    document.addEventListener('DOMContentLoaded', (event) => {
-        // 初期表示メッセージを設定
-        const totalPriceDisplay = document.getElementById("totalPrice");
-        totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
-        totalPriceDisplay.classList.add('guidance-message');
+document.addEventListener('DOMContentLoaded', (event) => {
+    // 初期表示メッセージを設定
+    const totalPriceDisplay = document.getElementById("totalPrice");
+    totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
+    totalPriceDisplay.classList.add('guidance-message');
 
-        // 計算関数を呼び出し、ボタンの状態を初期化
-        keisan(); 
-    });
+    // 計算関数を呼び出し、ボタンの状態を初期化
+    // これにより、初期ロード時にもボタンの非活性化などが正しく適用されます。
+    keisan(); 
+});
