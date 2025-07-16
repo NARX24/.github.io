@@ -288,12 +288,12 @@ function showMessage(message, isError) {
 }
 
 // DOMContentLoaded イベントリスナーを使用
-document.addEventListener('DOMContentLoaded', (event) => {
-    // 初期表示メッセージを設定
-    const totalPriceDisplay = document.getElementById("totalPrice");
-    totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
-    totalPriceDisplay.classList.add('guidance-message');
+    document.addEventListener('DOMContentLoaded', (event) => {
+        // 初期表示メッセージを設定
+        const totalPriceDisplay = document.getElementById("totalPrice");
+        totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
+        totalPriceDisplay.classList.add('guidance-message');
 
-    // 計算関数を呼び出し、ボタンの状態を初期化
-    keisan(); 
-});
+        // 計算関数を呼び出し、ボタンの状態を初期化
+        keisan(); 
+    });
