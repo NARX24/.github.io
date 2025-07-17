@@ -186,7 +186,7 @@ window.keisan = function() { // グローバルスコープに公開
     document.getElementById("totalTime").value = currentTotalHours;
     
     if (totalPrice === 0) {
-        totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
+        totalPriceDisplay.textContent = "まず施術希望部位を選択してください。";
         totalPriceDisplay.classList.add('guidance-message'); // 新しいスタイルを適用
         copyButton.classList.add("disabled"); // 何も選択されていなければコピーボタンも非活性
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
@@ -208,7 +208,7 @@ window.copyToClipboard = async function() { // グローバルスコープに公
     if (copyText === "" || currentTotalHours === "0.0" || currentTotalHours === "選択を見直してください") {
         // 重複エラー状態でない、または初期状態の場合にのみメッセージを表示
         if (!messageArea.classList.contains('error')) { 
-            showMessage("コピーする内容がありません。まず項目を選択してください。", true);
+            showMessage("コピーする内容がありません。まず施術希望部位を選択してください。", true);
         }
         reservationButton.classList.add("disabled"); // コピーできない場合は予約ボタンも非活性のまま
         return;
