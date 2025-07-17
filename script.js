@@ -186,7 +186,7 @@ window.keisan = function() { // グローバルスコープに公開
     document.getElementById("totalTime").value = currentTotalHours;
     
     if (totalPrice === 0) {
-        totalPriceDisplay.textContent = "まず施術希望部位を選択してください。";
+        totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
         totalPriceDisplay.classList.add('guidance-message'); // 新しいスタイルを適用
         copyButton.classList.add("disabled"); // 何も選択されていなければコピーボタンも非活性
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
@@ -225,7 +225,7 @@ window.copyToClipboard = async function() { // グローバルスコープに公
         
         // コピーしたい内容の開始と終了を示すマーカー
         const selectStartMarker = "---COPY_START---"; // ユニークな文字列
-        const selectEndMarker = "---COPY_END---";   // ユニークな文字列
+        const selectEndMarker = "---COPY_END---";    // ユニークな文字列
 
         // textareaに表示するメッセージを構築
         // コピー対象部分にマーカーを挿入
