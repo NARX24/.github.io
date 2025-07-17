@@ -30,7 +30,12 @@ td {
 }
 
 b {
-    font-size: 1.2em; /* これが「■ 合計時間（時間枠）」に適用されている */
+    font-size: 1.8em; /* さらに大きく */
+    font-weight: bold; /* 太字 */
+    display: block; /* ブロック要素にしてmarginを適用しやすくする */
+    text-align: center; /* 中央揃え */
+    margin: 20px 0 15px 0; /* 上下により多くの余白 */
+    color: #2f4f4f; /* 色も少し濃いめにすると良いかもしれません */
 }
 
 input[type="checkbox"] {
