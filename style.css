@@ -29,14 +29,26 @@ td {
     max-width: 200px;
 }
 
+/* メイン分類（セットメニュー、パーツメニュー）のスタイル */
 b {
-    font-size: 1.8em; /* さらに大きく */
+    font-size: 1.5em; /* メイン分類の文字サイズ */
     font-weight: bold; /* 太字 */
     display: block; /* ブロック要素にしてmarginを適用しやすくする */
     text-align: center; /* 中央揃え */
     margin: 20px 0 15px 0; /* 上下により多くの余白 */
     color: #2f4f4f; /* 色も少し濃いめにすると良いかもしれません */
 }
+
+/* サブ分類（顔、胴など）のスタイル */
+.menu-subtitle {
+    font-size: 1.1em; /* サブ分類の文字サイズ */
+    font-weight: bold; /* 太字 */
+    text-align: left; /* 左寄せに戻す */
+    margin: 15px 0 10px 10px; /* 上下の余白と左のインデント */
+    color: #2f4f4f; /* メイン分類と同じ色 */
+    display: block; /* marginを適用するため */
+}
+
 
 input[type="checkbox"] {
     margin-right: 5px;
@@ -86,13 +98,12 @@ input[type="checkbox"] {
     padding: 2px 5px; /* 内側の余白を調整 */
     
     text-align: center; /* テキストを中央揃え */
-    /* ここを修正 */
-    width: 40px; /* 幅をさらに小さく */
-    max-width: 60px; /* 最大幅も調整 */
+    width: 25px; /* さらに小さく */
+    max-width: 45px; /* 最大幅も調整 */
     
     flex-shrink: 0; /* 縮小させない */
     margin-right: 5px; /* 「時間」との間に少しスペース */
-    min-width: 35px; /* 最小幅も調整 */
+    min-width: 20px; /* 最小幅も調整 */ 
 }
 
 
@@ -111,13 +122,11 @@ input[type="checkbox"] {
     cursor: pointer;
     margin-top: 10px;
     transition: background-color 0.3s ease, opacity 0.3s ease; /* 透明度も変化させる */
-    /* 初期状態で非活性スタイルを適用 */
     opacity: 0.5; 
     pointer-events: none; 
     cursor: default; 
 }
 
-/* コピーボタンの活性スタイル (上書き用) */
 .copy-button:not(.disabled) {
     opacity: 1;
     pointer-events: auto;
@@ -125,11 +134,15 @@ input[type="checkbox"] {
 }
 
 
+/* NOTE: menu-title は以前の提案で使われていましたが、
+   今回は b と menu-subtitle で役割を分けています。
+   もしHTMLにこのクラスが残っていれば削除してください。
 .menu-title {
     font-size: 1.5em;
     text-align: center;
     margin: 10px 0;
 }
+*/
 
 .price {
     font-size: 0.8em;
@@ -167,34 +180,31 @@ input[type="checkbox"] {
     background-color: #ffe6e6; /* エラー時の背景色を薄い赤に */
 }
 
-/* 新しい予約ボタンのスタイル */
 .reservation-button {
-    display: block; /* ブロック要素にして中央揃えしやすくする */
-    width: 80%; /* 幅を調整 */
-    max-width: 300px; /* 最大幅を設定 */
-    margin: 15px auto 0 auto; /* 上部のマージンを調整し、中央に */
+    display: block;
+    width: 80%;
+    max-width: 300px;
+    margin: 15px auto 0 auto;
     padding: 15px 25px;
-    background-color: #28a745; /* 緑系の色 */
+    background-color: #28a745;
     color: white;
     border: none;
     border-radius: 8px;
     cursor: pointer;
     font-size: 1.1em;
     text-align: center;
-    text-decoration: none; /* リンクの下線を消す */
+    text-decoration: none;
     box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-    transition: background-color 0.3s ease, opacity 0.3s ease; /* 透明度も変化させる */
-    /* 初期状態で非活性スタイルを適用 */
+    transition: background-color 0.3s ease, opacity 0.3s ease;
     opacity: 0.5;
     pointer-events: none;
     cursor: default;
 }
 
 .reservation-button:hover {
-    background-color: #218838; /* ホバー時の色 */
+    background-color: #218838;
 }
 
-/* 予約ボタンの活性スタイル (上書き用) */
 .reservation-button:not(.disabled) {
     opacity: 1;
     pointer-events: auto;
