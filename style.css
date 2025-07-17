@@ -210,3 +210,26 @@ input[type="checkbox"] {
     pointer-events: auto;
     cursor: pointer;
 }
+/* メッセージ表示エリアのスタイル調整 */
+#message-area {
+    width: 100%; /* 親要素の幅いっぱいに広げる */
+    min-height: 100px; /* 最低限の高さを確保して、内容が見えるようにする */
+    margin-top: 10px; /* 「料金合計」やボタンとの間に少しスペースを作る */
+    padding: 10px; /* 内側の余白 */
+    box-sizing: border-box; /* paddingを含めてwidth/heightを計算 */
+    border: 1px solid #ccc; /* 枠線 */
+    border-radius: 5px; /* 角を丸くする */
+    background-color: #f9f9f9; /* 背景色 */
+    color: #333; /* 文字色 */
+    font-size: 14px; /* 文字サイズ */
+    line-height: 1.5; /* 行の高さ */
+    resize: vertical; /* 縦方向のみリサイズ可能にする */
+    display: none; /* 初期状態では非表示（JavaScriptで表示される） */
+}
+
+/* エラーメッセージの場合のスタイル */
+#message-area.error {
+    border-color: #dc3545; /* エラー時は赤色の枠線 */
+    color: #dc3545; /* エラー時は赤色の文字色 */
+    background-color: #f8d7da; /* エラー時は薄い赤色の背景 */
+}
