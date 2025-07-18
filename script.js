@@ -297,6 +297,30 @@ document.addEventListener('DOMContentLoaded', (event) => {
     totalPriceDisplay.classList.add('guidance-message');
 
     // 計算関数を呼び出し、ボタンの状態を初期化
+    keisan();
+
+    // ★★★ ここから下の行を追加/修正します ★★★
+
+    // コピーボタンのイベントリスナーを登録
+    const copyButton = document.getElementById("copyButton");
+    if (copyButton) {
+        copyButton.addEventListener('click', window.copyToClipboard);
+    }
+
+    // 予約ボタンも初期化時に参照しておくと良いでしょう（必要であれば）
+    // const reservationButton = document.getElementById("reservationButton");
+    // if (reservationButton) {
+    //     // reservationButtonの初期状態をここで設定
+    //     // 例: reservationButton.classList.add("disabled");
+    // }
+});// DOMContentLoaded イベントリスナーを使用
+document.addEventListener('DOMContentLoaded', (event) => {
+    // 初期表示メッセージを設定
+    const totalPriceDisplay = document.getElementById("totalPrice");
+    totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
+    totalPriceDisplay.classList.add('guidance-message');
+
+    // 計算関数を呼び出し、ボタンの状態を初期化
     // これにより、初期ロード時にもボタンの非活性化などが正しく適用されます。
     keisan(); 
 });
