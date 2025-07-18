@@ -3,8 +3,8 @@ const items = [
     // ■セットメニュー■
     { id: "set_eyebrow", name: "眉毛セット", time: 40, price: 11000, parts: ["part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullface", name: "全顔セット", time: 65, price: 13200, parts: ["part_nose_under", "part_mouth_under", "part_cheek", "part_face_line", "part_neck"], type: "set" },
-    { id: "set_fullbody_all", name: "全身オール（顔、VIO含む）", time: 270, price: 52800, parts: ["set_upperbody", "set_lowerbody"], type: "set" }, 
-    { id: "set_fullbody_noface", name: "顔なし全身", time: 200, price: 41800, parts: ["part_armpit", "part_nape", "part_back_upper", "part_back_lower", "part_chest_nipple", "part_abdomen_navel", "part_elbow_upper", "part_elbow_lower", "part_hand_finger", "part_v_line", "part_i_line", "part_o_line", "part_buttocks", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" }, 
+    { id: "set_fullbody_all", name: "全身オール（顔、VIO含む）", time: 270, price: 52800, parts: ["set_upperbody", "set_lowerbody"], type: "set" },
+    { id: "set_fullbody_noface", name: "顔なし全身", time: 200, price: 41800, parts: ["part_armpit", "part_nape", "part_back_upper", "part_back_lower", "part_chest_nipple", "part_abdomen_navel", "part_elbow_upper", "part_elbow_lower", "part_hand_finger", "part_v_line", "part_i_line", "part_o_line", "part_buttocks", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
     { id: "set_upperbody", name: "上半身セット", time: 170, price: 30800, parts: ["set_fullface", "part_armpit", "part_chest_nipple", "part_abdomen_navel", "part_nape", "part_back_upper", "part_back_lower", "part_elbow_upper", "part_elbow_lower", "part_hand_finger"], type: "set" },
     { id: "set_lowerbody", name: "下半身セット", time: 150, price: 30800, parts: ["set_vio", "part_buttocks", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
     { id: "set_vio", name: "VIOセット", time: 50, price: 16500, parts: ["part_v_line", "part_i_line", "part_o_line"], type: "set" },
@@ -14,8 +14,8 @@ const items = [
     { id: "set_chest_abdomen", name: "胸＋腹部セット", time: 35, price: 9900, parts: ["part_chest_nipple", "part_abdomen_navel"], type: "set" },
     { id: "set_arms_legs", name: "両腕+両足セット", time: 125, price: 28600, parts: ["part_elbow_upper", "part_elbow_lower", "part_hand_finger", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
     { id: "set_arms", name: "両腕セット", time: 65, price: 17600, parts: ["part_elbow_upper", "part_elbow_lower", "part_hand_finger"], type: "set" },
-    { id: "set_legs", name: "両足セット", time: 65, price: 17600, parts: ["part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" }, 
-    { id: "set_ear_whole", name: "耳全体（耳珠、耳たぶ含む）", time: 25, price: 8800, parts: ["part_tragus", "part_earlobe"], type: "set" }, 
+    { id: "set_legs", name: "両足セット", time: 65, price: 17600, parts: ["part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
+    { id: "set_ear_whole", name: "耳全体（耳珠、耳たぶ含む）", time: 25, price: 8800, parts: ["part_tragus", "part_earlobe"], type: "set" },
 
     // ■パーツメニュー■
     // 【顔】
@@ -54,7 +54,7 @@ const items = [
     { id: "part_earlobe", name: "耳たぶ", time: 13, price: 4400, parts: ["part_earlobe"], type: "part" },
     { id: "part_nipple", name: "乳輪周り", time: 10, price: 4400, parts: ["part_nipple"], type: "part" },
     { id: "part_navel_under", name: "ヘソ下", time: 10, price: 4400, parts: ["part_navel_under"], type: "part" },
-    { id: "part_design_fee", name: "デザイン料", time: 0, price: 0, parts: ["part_design_fee"], type: "part" } 
+    { id: "part_design_fee", name: "デザイン料", time: 0, price: 0, parts: ["part_design_fee"], type: "part" }
 ];
 
 let copyText = ""; // コピーするテキストを格納する変数
@@ -102,7 +102,7 @@ function getFinalParts(itemId, currentPath = new Set()) {
             finalParts.push(...getFinalParts(partId, currentPath));
         });
     }
-    
+
     currentPath.delete(itemId); // パスから削除
 
     return finalParts;
@@ -127,11 +127,11 @@ window.keisan = function() { // グローバルスコープに公開
 
     // すべてのチェックボックスを反復処理
     items.forEach(item => {
-        const checkbox = document.getElementById(item.id); 
+        const checkbox = document.getElementById(item.id);
         if (checkbox && checkbox.checked) {
             totalTime += item.time;
             totalPrice += item.price;
-            
+
             // 画面表示用のテキストを生成（詳細情報を含む）
             let setDetailText = '';
             if (item.type === "set" && item.parts && item.parts.length > 0) {
@@ -141,7 +141,7 @@ window.keisan = function() { // グローバルスコープに公開
                 }).filter(name => name !== '');
                 setDetailText = finalExpandedNames.length > 0 ? `＜${finalExpandedNames.join("・")}＞` : '';
             }
-            selectedPartsDisplay.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`); 
+            selectedPartsDisplay.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`);
 
             // コピー用のテキストを生成（詳細情報を含まない）
             selectedPartsForCopy.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円`);
@@ -167,24 +167,32 @@ window.keisan = function() { // グローバルスコープに公開
     });
 
     if (duplicatePartNames.length > 0) {
-        const uniqueDuplicates = [...new Set(duplicatePartNames)]; 
+        const uniqueDuplicates = [...new Set(duplicatePartNames)];
         showMessage("選択したメニューに重複する部位が含まれています。\n選択を修正してください。\n重複部位: " + uniqueDuplicates.join("、"), true);
-        
+
         document.getElementById("totalTime").value = "選択を見直してください";
         totalPriceDisplay.textContent = "料金合計: 0円（税込）"; // 重複がある場合は0円表示
         totalPriceDisplay.classList.remove('guidance-message'); // スタイルを戻す
         copyText = "";
-        currentTotalHours = "選択を見直してください"; 
-        
+        currentTotalHours = "選択を見直してください";
+
         copyButton.classList.add("disabled"); // 重複があればコピーボタンも非活性
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
         return;
     }
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
-    currentTotalHours = hours.toFixed(1);
+
+    // ★ここを修正します★
+    // 小数点以下が.0の場合に整数にする
+    if (hours % 1 === 0) { // hoursが整数（例: 2.0, 3.0）の場合
+        currentTotalHours = hours.toString(); // 整数に変換
+    } else {
+        currentTotalHours = hours.toFixed(1); // それ以外は小数点以下1桁に固定
+    }
+
     document.getElementById("totalTime").value = currentTotalHours;
-    
+
     if (totalPrice === 0) {
         totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
         totalPriceDisplay.classList.add('guidance-message'); // 新しいスタイルを適用
@@ -204,10 +212,10 @@ window.keisan = function() { // グローバルスコープに公開
 window.copyToClipboard = async function() { // グローバルスコープに公開
     const messageArea = document.getElementById("message-area");
     const reservationButton = document.getElementById("reservationButton");
-    
+
     if (copyText === "" || currentTotalHours === "0.0" || currentTotalHours === "選択を見直してください") {
         // 重複エラー状態でない、または初期状態の場合にのみメッセージを表示
-        if (!messageArea.classList.contains('error')) { 
+        if (!messageArea.classList.contains('error')) {
             showMessage("コピーする内容がありません。まず施術希望部位を選択してください。", true);
         }
         reservationButton.classList.add("disabled"); // コピーできない場合は予約ボタンも非活性のまま
@@ -217,23 +225,34 @@ window.copyToClipboard = async function() { // グローバルスコープに公
     try {
         // Clipboard API を使用して自動コピーを試みる
         await navigator.clipboard.writeText(copyText);
-        showMessage("選択内容がコピーされました！\nご予約メニュー【" + currentTotalHours + "時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。", false);
+        // ★ここを修正します★
+        // currentTotalHours を再整形して表示
+        let displayHours = currentTotalHours;
+        if (displayHours.endsWith('.0')) {
+            displayHours = displayHours.slice(0, -2); // ".0" を削除
+        }
+        showMessage(`選択内容がコピーされました！\nご予約メニュー【${displayHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`, false);
         reservationButton.classList.remove("disabled"); // 予約ボタンを活性化
     } catch (err) {
         // 自動コピーが失敗した場合（例: HTTPSでない、許可が得られないなど）
         console.error('Failed to copy: ', err);
-        
+
         // コピーしたい内容の開始と終了を示すマーカー
         const selectStartMarker = "---COPY_START---"; // ユニークな文字列
         const selectEndMarker = "---COPY_END---";    // ユニークな文字列
 
         // textareaに表示するメッセージを構築
         // コピー対象部分にマーカーを挿入
-        const fullDisplayMessage = `自動コピーに失敗しました。\n以下の枠内の**ハイライトされた内容をコピー**して手動で貼り付けてください。\n\n${selectStartMarker}${copyText}${selectEndMarker}\n\nご予約メニュー【${currentTotalHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`;
-        
+        // ★ここも修正します（手動コピーガイドメッセージ）★
+        let displayHoursForManual = currentTotalHours;
+        if (displayHoursForManual.endsWith('.0')) {
+            displayHoursForManual = displayHoursForManual.slice(0, -2); // ".0" を削除
+        }
+        const fullDisplayMessage = `自動コピーに失敗しました。\n以下の枠内の**ハイライトされた内容をコピー**して手動で貼り付けてください。\n\n${selectStartMarker}${copyText}${selectEndMarker}\n\nご予約メニュー【${displayHoursForManual}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`;
+
         // メッセージエリアに表示
-        showMessage(fullDisplayMessage, true); 
-        
+        showMessage(fullDisplayMessage, true);
+
         // textareaの値を一時的に取得
         let currentText = messageArea.value;
 
@@ -282,7 +301,7 @@ function showMessage(message, isError) {
         messageArea.classList.remove("error");
     }
     messageArea.style.display = "block";
-    
+
     // エラーメッセージが表示された場合にのみスクロール
     if (isError) {
         messageArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -297,9 +316,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     totalPriceDisplay.classList.add('guidance-message');
 
     // 計算関数を呼び出し、ボタンの状態を初期化
+    // これにより、初期ロード時にもボタンの非活性化などが正しく適用されます。
     keisan();
-
-    // ★★★ ここから下の行を追加/修正します ★★★
 
     // コピーボタンのイベントリスナーを登録
     const copyButton = document.getElementById("copyButton");
@@ -313,14 +331,4 @@ document.addEventListener('DOMContentLoaded', (event) => {
     //     // reservationButtonの初期状態をここで設定
     //     // 例: reservationButton.classList.add("disabled");
     // }
-});// DOMContentLoaded イベントリスナーを使用
-document.addEventListener('DOMContentLoaded', (event) => {
-    // 初期表示メッセージを設定
-    const totalPriceDisplay = document.getElementById("totalPrice");
-    totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
-    totalPriceDisplay.classList.add('guidance-message');
-
-    // 計算関数を呼び出し、ボタンの状態を初期化
-    // これにより、初期ロード時にもボタンの非活性化などが正しく適用されます。
-    keisan(); 
 });
