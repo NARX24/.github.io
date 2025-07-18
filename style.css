@@ -164,28 +164,34 @@ input[type="checkbox"] {
     margin-top: 2px;
 }
 
+/* メッセージ表示エリアのスタイル調整 */
 #message-area {
-    margin-top: 10px;
-    color: green;
-    font-weight: bold;
-    display: none; /* 初期は非表示 */
-    width: 90%; /* 幅を調整 */
-    border: 1px solid #ccc;
+    /* width: 100%; */ /* この行を削除するかコメントアウト */
+    width: fit-content; /* ★内容に合わせて幅を自動調整★ */
+    min-width: 300px;   /* 最小の幅を設定（必要に応じて調整） */
+    max-width: 90%;     /* 最大の幅を設定（画面幅の90%まで） */
+    
+    min-height: 100px; /* 最低限の高さを確保 */
+    /* margin-top: 10px; */ /* これは `margin: 10px auto;` に含める */
+    margin: 10px auto; /* ★上下10px、左右autoで中央揃え★ */
+    
     padding: 10px;
+    box-sizing: border-box;
+    border: 1px solid #ccc;
+    border-radius: 5px;
     background-color: #f9f9f9;
-    box-sizing: border-box; /* paddingとborderをwidthに含める */
-    resize: vertical; /* ユーザーが縦方向にリサイズできるようにする */
-    min-height: 80px; /* 最小高さを設定 */
-    max-height: 180px; /* 最大高さを設定 */
-    overflow-y: auto; /* 必要に応じてスクロールバーを表示 */
-    font-size: 0.9em; /* テキストのサイズ調整 */
-    line-height: 1.4; /* 行の高さ調整 */
+    color: #333;
+    font-size: 14px;
+    line-height: 1.5;
+    resize: vertical;
+    display: none; /* 初期状態は非表示 */
 }
 
+/* エラーメッセージの場合のスタイル */
 #message-area.error {
-    color: red;
-    border-color: red;
-    background-color: #ffe6e6; /* エラー時の背景色を薄い赤に */
+    border-color: #dc3545;
+    color: #dc3545;
+    background-color: #f8d7da;
 }
 
 .reservation-button {
