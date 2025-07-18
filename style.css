@@ -95,28 +95,19 @@ input[type="checkbox"] {
     border: 1px solid #ccc !important;
     background-color: #fff !important;
     border-radius: 3px;
-    padding: 2px 5px;
+    padding: 2px 5px; /* 左右のpaddingは必要であれば残す */
     
     text-align: center;
     
-    /* 以前の幅指定は削除またはコメントアウト済みであることを確認してください */
-    /* 例:
-    // width: 25px;
-    // max-width: 45px;
-    // min-width: 20px;
-    */
+    flex-shrink: 0; 
+    margin-right: 5px; 
     
-    flex-shrink: 0; /* このプロパティはflexコンテナ内のアイテムである場合に有効 */
-    margin-right: 5px;
-    
-    /* ★ここを修正/追加します★ */
-    width: auto; /* これが重要 */
-    min-width: 30px; /* 必要に応じて調整してください */
-    max-width: fit-content; /* ← **これを `100px` から変更**します。内容の幅に合わせるための強力な指定です。 */
+    width: auto;
+    min-width: 1ch;   /* ★ここに注目！ 'ch' 単位は文字の幅に連動します。1文字分の幅。 */
+    max-width: fit-content;
     box-sizing: content-box;
 
-    /* ★この行を追加してください★ */
-    display: inline-block; /* インラインブロック要素として振る舞うようにする */
+    display: inline-block; /* これが重要 */
 }
 
 #totalPrice.guidance-message {
