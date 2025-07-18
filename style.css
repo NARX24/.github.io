@@ -67,45 +67,52 @@ input[type="checkbox"] {
     z-index: 1000;
 }
 
+/* .total-row を元のFlexbox設定に戻す */
 .total-row {
-    font-size: 1.2em; /* このままでOK */
+    font-size: 1.2em;
     color: #444444;
-    /* display: flex; */ /* ★この行を削除するかコメントアウト！★ */
-    /* flex-direction: column; */ /* ★この行も削除するかコメントアウト！★ */
-    /* align-items: center; */ /* ★この行も削除するかコメントアウト！★ */
-    padding-right: 20px; /* 必要なら調整 */
-
-    /* 代わりに、中央寄せをしたい場合は、親要素に `text-align: center;` を適用するか、
-       各要素に `margin: 0 auto;` を適用する方法を検討します。
-       または、total-row-wrapperにtext-align: center;を適用します。
-    */
-    text-align: center; /* total-row内のテキストを中央寄せにする */
+    display: flex;          /* ★ここを戻します！★ */
+    flex-direction: column; /* ★ここも戻します！★ */
+    align-items: center;    /* ★ここも戻します！★ */
+    padding-right: 20px;
+    /* text-align: center; */ /* これは不要になりますので削除かコメントアウト */
 }
 
-/* ★そして、#totalTimeのスタイルは、前回の修正で問題ないはずですが、
-   念のためもう一度確認し、特に `width: auto;` と `max-width: fit-content;`
-   が入っていることを確認してください。
-*/
+/* 新しいコンテナ .time-input-container のスタイル */
+.time-input-container {
+    display: inline-flex; /* ★inputを囲むコンテナをinline-flexにする★ */
+    width: fit-content;   /* ★内容に合わせて幅を調整する★ */
+    /* min-width: 30px; */ /* 必要ならここに最小幅を指定 */
+    /* max-width: 150px; */ /* 必要ならここに最大幅を指定 */
+    align-items: center; /* inputとその中のテキストを中央寄せにするため */
+    justify-content: center; /* inputとその中のテキストを中央寄せにするため */
+    margin: 0 5px; /* ■合計時間（時間枠）と時間の間にスペースを入れる */
+}
+
+/* 合計時間の入力フィールドのスタイル調整 */
 #totalTime {
-    /* 既存のスタイル */
+    font-size: 1em;
+    font-weight: bold;
+    color: #ff0000;
+
     border: 1px solid #ccc !important;
     background-color: #fff !important;
     border-radius: 3px;
     padding: 2px 5px;
-    text-align: center;
-    
-    /* 以下のプロパティが重要です */
-    width: auto;
-    min-width: 1ch; /* これで短い文字も適切に収まるはず */
-    max-width: fit-content; /* これで内容に応じた最大幅になる */
-    box-sizing: content-box;
-    display: inline-block; /* これも重要 */
 
-    flex-shrink: 0; /* これを残していても問題ありません */
-    margin-right: 5px;
-    font-size: 1em;
-    font-weight: bold;
-    color: #ff0000;
+    text-align: center;
+
+    /* 以前の自動調整のプロパティは削除またはコメントアウト */
+    /* width: auto; */
+    /* min-width: 1ch; */
+    /* max-width: fit-content; */
+    /* display: inline-block; */
+
+    width: 100%; /* ★親の .time-input-container の幅いっぱいに広げる★ */
+    box-sizing: border-box; /* paddingを含めてwidthを計算するように変更 */
+
+    flex-shrink: 0; 
+    /* margin-right: 5px; */ /* .time-input-container に移動したので不要 */
 }
 
 #totalPrice.guidance-message {
