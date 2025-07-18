@@ -88,28 +88,35 @@ input[type="checkbox"] {
 
 /* 合計時間の入力フィールドのスタイル調整 */
 #totalTime {
-    font-size: 1em; /* 親の.total-timeから継承されるので、1emで適切に拡大される */
-    font-weight: bold; /* 太字 */
-    color: #ff0000; /* 値の色 */
+    font-size: 1em;
+    font-weight: bold;
+    color: #ff0000;
     
-    border: 1px solid #ccc !important; /* 枠線を追加し、!importantで優先順位を上げる */
-    background-color: #fff !important; /* 背景色を白にし、!importantで優先順位を上げる */
-    border-radius: 3px; /* 少し角丸に */
-    padding: 2px 5px; /* 内側の余白を調整 */
+    border: 1px solid #ccc !important;
+    background-color: #fff !important;
+    border-radius: 3px;
+    padding: 2px 5px;
     
-    text-align: center; /* テキストを中央揃え */
-    /* width: 25px; */ /* この行を削除するか、コメントアウト（// もしくは /* */ で囲む） */
-    /* max-width: 45px; */ /* この行を削除するか、コメントアウト */
+    text-align: center;
     
-    flex-shrink: 0; /* 縮小させない */
-    margin-right: 5px; /* 「時間」との間に少しスペース */
-    /* min-width: 20px; */ /* この行も削除するか、コメントアウト */
+    /* 以前の幅指定は削除またはコメントアウト済みであることを確認してください */
+    /* 例:
+    // width: 25px;
+    // max-width: 45px;
+    // min-width: 20px;
+    */
+    
+    flex-shrink: 0; /* このプロパティはflexコンテナ内のアイテムである場合に有効 */
+    margin-right: 5px;
+    
+    /* ★ここを修正/追加します★ */
+    width: auto; /* これが重要 */
+    min-width: 30px; /* 必要に応じて調整してください */
+    max-width: fit-content; /* ← **これを `100px` から変更**します。内容の幅に合わせるための強力な指定です。 */
+    box-sizing: content-box;
 
-    /* ★ここから追加・修正する内容です★ */
-    width: auto; /* 内容に合わせて幅を自動調整 - これが重要です */
-    min-width: 30px; /* 最小の幅を設定 (調整可能) */
-    max-width: 100px; /* 最大の幅を設定 (調整可能) */
-    box-sizing: content-box; /* paddingを含めないで幅を計算 */
+    /* ★この行を追加してください★ */
+    display: inline-block; /* インラインブロック要素として振る舞うようにする */
 }
 
 #totalPrice.guidance-message {
