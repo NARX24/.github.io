@@ -68,46 +68,44 @@ input[type="checkbox"] {
 }
 
 .total-row {
-    font-size: 1.2em; /* このサイズが基準 */
-    color: #2f4f4f;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding-right: 20px;
+    font-size: 1.2em; /* このままでOK */
+    color: #444444;
+    /* display: flex; */ /* ★この行を削除するかコメントアウト！★ */
+    /* flex-direction: column; */ /* ★この行も削除するかコメントアウト！★ */
+    /* align-items: center; */ /* ★この行も削除するかコメントアウト！★ */
+    padding-right: 20px; /* 必要なら調整 */
+
+    /* 代わりに、中央寄せをしたい場合は、親要素に `text-align: center;` を適用するか、
+       各要素に `margin: 0 auto;` を適用する方法を検討します。
+       または、total-row-wrapperにtext-align: center;を適用します。
+    */
+    text-align: center; /* total-row内のテキストを中央寄せにする */
 }
 
-.total-time {
-    font-size: 1em; /* total-rowからの相対値。1.2emの親から継承されるので、実質的には1.2emと同じになる */
-    color: #ff0000;
-    margin-bottom: 5px;
-    display: flex; /* 値と「時間」を横並びにするため */
-    align-items: center; /* 垂直方向中央揃え */
-    justify-content: center; /* 水平方向中央揃え */
-    font-weight: bold; /* 全体を太字に */
-}
-
-/* 合計時間の入力フィールドのスタイル調整 */
+/* ★そして、#totalTimeのスタイルは、前回の修正で問題ないはずですが、
+   念のためもう一度確認し、特に `width: auto;` と `max-width: fit-content;`
+   が入っていることを確認してください。
+*/
 #totalTime {
-    font-size: 1em;
-    font-weight: bold;
-    color: #ff0000;
-    
+    /* 既存のスタイル */
     border: 1px solid #ccc !important;
     background-color: #fff !important;
     border-radius: 3px;
-    padding: 2px 5px; /* 左右のpaddingは必要であれば残す */
-    
+    padding: 2px 5px;
     text-align: center;
     
-    flex-shrink: 0; 
-    margin-right: 5px; 
-    
+    /* 以下のプロパティが重要です */
     width: auto;
-    min-width: 1ch;   /* ★ここに注目！ 'ch' 単位は文字の幅に連動します。1文字分の幅。 */
-    max-width: fit-content;
+    min-width: 1ch; /* これで短い文字も適切に収まるはず */
+    max-width: fit-content; /* これで内容に応じた最大幅になる */
     box-sizing: content-box;
+    display: inline-block; /* これも重要 */
 
-    display: inline-block; /* これが重要 */
+    flex-shrink: 0; /* これを残していても問題ありません */
+    margin-right: 5px;
+    font-size: 1em;
+    font-weight: bold;
+    color: #ff0000;
 }
 
 #totalPrice.guidance-message {
