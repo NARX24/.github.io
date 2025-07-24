@@ -125,23 +125,20 @@ window.keisan = function() { // グローバルスコープに公開
     messageArea.classList.remove('error');
     messageArea.value = ""; // textareaなのでinnerHTMLではなくvalue
 
-    // --- 【追加・修正箇所1: 全てのパーツメニューを初期状態に戻す】 ---
-    // まず全てのパーツメニュー（チェックボックスとラベル）を有効な状態に戻す
+    // --- 【修正箇所: 全てのアイテムを初期状態に戻す（統合）】 ---
+    // まず全てのメニュー（セット、パーツ問わず）を有効な状態に戻す
     items.forEach(item => {
-        if (item.type === "part") { // パーツメニューのみ対象
-            const checkbox = document.getElementById(item.id);
-            // HTMLでlabel要素にid="label_パーツID"を付与している前提
-            const label = document.getElementById(`label_${item.id}`); 
-            if (checkbox) {
-                checkbox.disabled = false; // 有効化
-                if (label) {
-                    // label要素に適用された.disabled-itemクラスを削除
-                    label.classList.remove('disabled-item'); 
-                }
+        const checkbox = document.getElementById(item.id);
+        const label = document.getElementById(`label_${item.id}`); // label_ID形式で取得
+
+        if (checkbox) {
+            checkbox.disabled = false; // 有効化
+            if (label) {
+                label.classList.remove('disabled-item'); // スタイルを削除
             }
         }
     });
-    // --- 【追加・修正箇所1 終わり】 ---
+    // --- 【修正箇所 終わり】 ---
 
 
     // すべてのチェックボックスを反復処理
@@ -201,8 +198,8 @@ window.keisan = function() { // グローバルスコープに公開
         return;
     }
 
-    // --- 【追加・修正箇所2: セットメニューに含まれるパーツを非活性にする】 ---
-    // ここで再度全てのチェックボックスの状態をチェックし、セットに含まれるパーツを非活性化
+    // --- 【修正箇所: セットメニューに含まれるパーツを非活性にするロジック】 ---
+    // 重複がない場合のみ、セットに含まれるパーツを非活性化する
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         // checkboxが存在し、かつ選択されているセットメニューの場合のみ処理
@@ -211,9 +208,9 @@ window.keisan = function() { // グローバルスコープに公開
 
             containedParts.forEach(partId => {
                 const partCheckbox = document.getElementById(partId);
-                // HTMLでlabel要素にid="label_パーツID"を付与している前提
                 const partLabel = document.getElementById(`label_${partId}`); 
-                // セット自体は非活性にしない、個別パーツのみ対象
+                
+                // セットに含まれる個別パーツを無効化
                 if (partCheckbox && itemMap.get(partId).type === "part") { 
                     partCheckbox.disabled = true; // チェックボックスを無効化
                     partCheckbox.checked = false; // 念のためチェックも外す (これ重要)
@@ -224,12 +221,11 @@ window.keisan = function() { // グローバルスコープに公開
             });
         }
     });
-    // --- 【追加・修正箇所2 終わり】 ---
+    // --- 【修正箇所 終わり】 ---
 
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
 
-    // ★ここを修正します★
     // 小数点以下が.0の場合に整数にする
     if (hours % 1 === 0) { // hoursが整数（例: 2.0, 3.0）の場合
         currentTotalHours = hours.toString(); // 整数に変換
@@ -271,7 +267,6 @@ window.copyToClipboard = async function() { // グローバルスコープに公
     try {
         // Clipboard API を使用して自動コピーを試みる
         await navigator.clipboard.writeText(copyText);
-        // ★ここを修正します★
         // currentTotalHours を再整形して表示
         let displayHours = currentTotalHours;
         if (displayHours.endsWith('.0')) {
@@ -289,7 +284,6 @@ window.copyToClipboard = async function() { // グローバルスコープに公
 
         // textareaに表示するメッセージを構築
         // コピー対象部分にマーカーを挿入
-        // ★ここも修正します（手動コピーガイドメッセージ）★
         let displayHoursForManual = currentTotalHours;
         if (displayHoursForManual.endsWith('.0')) {
             displayHoursForManual = displayHoursForManual.slice(0, -2); // ".0" を削除
@@ -318,7 +312,6 @@ window.copyToClipboard = async function() { // グローバルスコープに公
 
             // 選択範囲を設定
             // マーカー削除後のテキストでの正しい選択範囲を再計算
-            // 例えば、マーカーの長さが selectionStart と selectionEnd から引かれる
             const adjustedSelectionStart = selectionStart - selectStartMarker.length;
             const adjustedSelectionEnd = selectionEnd - selectStartMarker.length;
 
@@ -370,11 +363,4 @@ document.addEventListener('DOMContentLoaded', (event) => {
     if (copyButton) {
         copyButton.addEventListener('click', window.copyToClipboard);
     }
-
-    // 予約ボタンも初期化時に参照しておくと良いでしょう（必要であれば）
-    // const reservationButton = document.getElementById("reservationButton");
-    // if (reservationButton) {
-    //    // reservationButtonの初期状態をここで設定
-    //    // 例: reservationButton.classList.add("disabled");
-    // }
 });
