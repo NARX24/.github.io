@@ -1,485 +1,304 @@
-body {
+body { 
+     background-color: #DDDDDD; 
+     font-family: Arial, sans-serif; 
+     margin: 0; 
+     padding: 0; 
+ } 
 
-    background-color: #DDDDDD;
 
-    font-family: Arial, sans-serif;
 
-    margin: 0;
+ #scroll-container { 
+     max-height: calc(100vh - 350px); /* 予約ボタンの高さ分、さらに縮める */ 
+     overflow-y: auto; 
+     -webkit-overflow-scrolling: touch; 
+     padding-bottom: 250px; /* 必要に応じて調整 */ 
+ } 
 
-    padding: 0;
 
-}
 
+ #form-container { 
+     width: 100%; 
+ } 
 
 
-#scroll-container {
 
-    max-height: calc(100vh - 350px); /* 予約ボタンの高さ分、さらに縮める */
+ table { 
+     width: 100%; 
+     border-collapse: collapse; 
+     table-layout: auto; 
+ } 
 
-    overflow-y: auto;
 
-    -webkit-overflow-scrolling: touch;
 
-    padding-bottom: 250px; /* 必要に応じて調整 */
+ td { 
+     padding: 4px 8px; 
+     vertical-align: top; 
+     word-wrap: break-word; 
+     max-width: 200px; 
+ } 
 
-}
 
 
+ /* メイン分類（セットメニュー、パーツメニュー）のスタイル */ 
+ b { 
+     font-size: 1.5em; /* メイン分類の文字サイズ */ 
+     font-weight: bold; /* 太字 */ 
+     display: block; /* ブロック要素にしてmarginを適用しやすくする */ 
+     text-align: center; /* 中央揃え */ 
+     margin: 20px 0 15px 0; /* 上下により多くの余白 */ 
+     color: #2f4f4f; /* 色も少し濃いめにすると良いかもしれません */ 
+ } 
 
-#form-container {
 
-    width: 100%;
 
-}
+ /* サブ分類（顔、胴など）のスタイル */ 
+ .menu-subtitle { 
+     font-size: 1.1em; /* サブ分類の文字サイズ */ 
+     font-weight: bold; /* 太字 */ 
+     text-align: left; /* 左寄せに戻す */ 
+     margin: 15px 0 10px 10px; /* 上下の余白と左のインデント */ 
+     color: #2f4f4f; /* メイン分類と同じ色 */ 
+     display: block; /* marginを適用するため */ 
+ } 
 
 
 
-table {
 
-    width: 100%;
 
-    border-collapse: collapse;
 
-    table-layout: auto;
+ input[type="checkbox"] { 
+     margin-right: 5px; 
+ } 
 
-}
 
 
+ /* ============================================== */ 
+ /* 【追加箇所】非活性時のスタイル */ 
+ .disabled-item { 
+     /* labelタグに適用されるクラス */ 
+     color: #aaa; /* 薄い灰色 */ 
+     cursor: not-allowed; /* カーソルを禁止マークに */ 
+     /* その他のスタイル調整（必要であれば） */ 
+ } 
 
-td {
 
-    padding: 4px 8px;
 
-    vertical-align: top;
+ .disabled-item input[type="checkbox"] { 
+     /* 非活性のチェックボックス自体のスタイル（オプション） */ 
+     cursor: not-allowed; 
+     opacity: 0.7; /* チェックボックスも少し薄くする */ 
+ } 
+ /* ============================================== */ 
 
-    word-wrap: break-word;
 
-    max-width: 200px;
 
-}
 
 
 
-/* メイン分類（セットメニュー、パーツメニュー）のスタイル */
+ .total-row-wrapper { 
+     position: fixed; 
+     bottom: 0; 
+     left: 0; 
+     right: 0; 
+     background-color: #DDDDDD; 
+     padding: 10px; 
+     text-align: center; 
+     border-top: 1px solid #aaa; 
+     box-shadow: 0 -2px 5px rgba(0,0,0,0.1); 
+     z-index: 1000; 
+ } 
 
-b {
 
-    font-size: 1.5em; /* メイン分類の文字サイズ */
 
-    font-weight: bold; /* 太字 */
+ /* .total-row を元のFlexbox設定に戻す */ 
+ .total-row { 
+     font-size: 1.2em; 
+     color: #444444; 
+     display: flex;         /* ★ここを戻します！★ */ 
+     flex-direction: column; /* ★ここも戻します！★ */ 
+     align-items: center;    /* ★ここも戻します！★ */ 
+     padding-right: 20px; 
+     /* text-align: center; */ /* これは不要になりますので削除かコメントアウト */ 
+ } 
 
-    display: block; /* ブロック要素にしてmarginを適用しやすくする */
 
-    text-align: center; /* 中央揃え */
 
-    margin: 20px 0 15px 0; /* 上下により多くの余白 */
+ /* 新しいコンテナ .time-input-container のスタイル */ 
+ .time-input-container { 
+     display: inline-flex; /* ★inputを囲むコンテナをinline-flexにする★ */ 
+     width: fit-content;    /* ★内容に合わせて幅を調整する★ */ 
+     /* min-width: 30px; */ /* 必要ならここに最小幅を指定 */ 
+     /* max-width: 150px; */ /* 必要ならここに最大幅を指定 */ 
+     align-items: center; /* inputとその中のテキストを中央寄せにするため */ 
+     justify-content: center; /* inputとその中のテキストを中央寄せにするため */ 
+     margin: 0 5px; /* ■合計時間（時間枠）と時間の間にスペースを入れる */ 
+ } 
 
-    color: #2f4f4f; /* 色も少し濃いめにすると良いかもしれません */
 
-}
 
+ /* 合計時間の入力フィールドのスタイル調整 */ 
+ #totalTime { 
+     font-size: 1em; 
+     font-weight: bold; 
+     color: #ff0000; 
 
 
-/* サブ分類（顔、胴など）のスタイル */
 
-.menu-subtitle {
+     border: 1px solid #ccc !important; 
+     background-color: #fff !important; 
+     border-radius: 3px; 
+     padding: 2px 5px; 
 
-    font-size: 1.1em; /* サブ分類の文字サイズ */
 
-    font-weight: bold; /* 太字 */
 
-    text-align: left; /* 左寄せに戻す */
+     text-align: center; 
 
-    margin: 15px 0 10px 10px; /* 上下の余白と左のインデント */
 
-    color: #2f4f4f; /* メイン分類と同じ色 */
 
-    display: block; /* marginを適用するため */
+     /* 以前の自動調整のプロパティは削除またはコメントアウト */ 
+     /* width: auto; */ 
+     /* min-width: 1ch; */ 
+     /* max-width: fit-content; */ 
+     /* display: inline-block; */ 
 
-}
 
 
+     width: 100%; /* ★親の .time-input-container の幅いっぱいに広げる★ */ 
+     box-sizing: border-box; /* paddingを含めてwidthを計算するように変更 */ 
 
 
 
-input[type="checkbox"] {
+     flex-shrink: 0;  
+     /* margin-right: 5px; */ /* .time-input-container に移動したので不要 */ 
+ } 
 
-    margin-right: 5px;
 
-}
 
+ #totalPrice.guidance-message { 
+     font-size: 1em; /* 少し大きめに */ 
+     color: #555555; /* グレー系の色 */ 
+     font-weight: normal; /* 太字ではない */ 
+ } 
 
 
-/* ============================================== */
 
-/* 【追加箇所】非活性時のスタイル */
+ .copy-button { 
+     padding: 10px 20px; 
+     background-color: #007bff; 
+     color: white; 
+     border: none; 
+     border-radius: 5px; 
+     cursor: pointer; 
+     margin-top: 10px; 
+     transition: background-color 0.3s ease, opacity 0.3s ease; /* 透明度も変化させる */ 
+     opacity: 0.5;  
+     pointer-events: none;  
+     cursor: default;  
+ } 
 
-.disabled-item {
 
-    /* labelタグに適用されるクラス */
 
-    color: #aaa; /* 薄い灰色 */
+ .copy-button:not(.disabled) { 
+     opacity: 1; 
+     pointer-events: auto; 
+     cursor: pointer; 
+ } 
 
-    cursor: not-allowed; /* カーソルを禁止マークに */
 
-    /* その他のスタイル調整（必要であれば） */
 
-}
 
 
 
-.disabled-item input[type="checkbox"] {
+ /* NOTE: menu-title は以前の提案で使われていましたが、 
+     今回は b と menu-subtitle で役割を分けています。 
+     もしHTMLにこのクラスが残っていれば削除してください。 
+ .menu-title { 
+     font-size: 1.5em; 
+     text-align: center; 
+     margin: 10px 0; 
+ } 
+ */ 
 
-    /* 非活性のチェックボックス自体のスタイル（オプション） */
 
-    cursor: not-allowed;
 
-    opacity: 0.7; /* チェックボックスも少し薄くする */
+ .price { 
+     font-size: 0.8em; 
+     color: #555; 
+ } 
 
-}
 
-/* ============================================== */
 
+ .set-detail { 
+     display: block; 
+     font-size: 0.6em; 
+     color: #555; 
+     margin-top: 2px; 
+ } 
 
 
 
+ /* メッセージ表示エリアのスタイル調整 */ 
+ #message-area { 
+     /* width: 100%; */ /* この行を削除するかコメントアウト */ 
+     width: fit-content; /* ★内容に合わせて幅を自動調整★ */ 
+     min-width: 300px;    /* 最小の幅を設定（必要に応じて調整） */ 
+     max-width: 90%;      /* 最大の幅を設定（画面幅の90%まで） */ 
+      
+     min-height: 100px; /* 最低限の高さを確保 */ 
+     /* margin-top: 10px; */ /* これは `margin: 10px auto;` に含める */ 
+     margin: 10px auto; /* ★上下10px、左右autoで中央揃え★ */ 
+      
+     padding: 10px; 
+     box-sizing: border-box; 
+     border: 1px solid #ccc; 
+     border-radius: 5px; 
+     background-color: #f9f9f9; 
+     color: #333; 
+     font-size: 14px; 
+     line-height: 1.5; 
+     resize: vertical; 
+     display: none; /* 初期状態は非表示 */ 
+ } 
 
-.total-row-wrapper {
 
-    position: fixed;
 
-    bottom: 0;
+ /* エラーメッセージの場合のスタイル */ 
+ #message-area.error { 
+     border-color: #dc3545; 
+     color: #dc3545; 
+     background-color: #f8d7da; 
+ } 
 
-    left: 0;
 
-    right: 0;
 
-    background-color: #DDDDDD;
+ .reservation-button { 
+     display: block; 
+     width: 80%; 
+     max-width: 300px; 
+     margin: 15px auto 0 auto; 
+     padding: 15px 25px; 
+     background-color: #28a745; 
+     color: white; 
+     border: none; 
+     border-radius: 8px; 
+     cursor: pointer; 
+     font-size: 1.1em; 
+     text-align: center; 
+     text-decoration: none; 
+     box-shadow: 0 4px 6px rgba(0,0,0,0.1); 
+     transition: background-color 0.3s ease, opacity 0.3s ease; 
+     opacity: 0.5; 
+     pointer-events: none; 
+     cursor: default; 
+ } 
 
-    padding: 10px;
 
-    text-align: center;
 
-    border-top: 1px solid #aaa;
+ .reservation-button:hover { 
+     background-color: #218838; 
+ } 
 
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
 
-    z-index: 1000;
 
-}
-
-
-
-/* .total-row を元のFlexbox設定に戻す */
-
-.total-row {
-
-    font-size: 1.2em;
-
-    color: #444444;
-
-    display: flex;         /* ★ここを戻します！★ */
-
-    flex-direction: column; /* ★ここも戻します！★ */
-
-    align-items: center;    /* ★ここも戻します！★ */
-
-    padding-right: 20px;
-
-    /* text-align: center; */ /* これは不要になりますので削除かコメントアウト */
-
-}
-
-
-
-/* 新しいコンテナ .time-input-container のスタイル */
-
-.time-input-container {
-
-    display: inline-flex; /* ★inputを囲むコンテナをinline-flexにする★ */
-
-    width: fit-content;    /* ★内容に合わせて幅を調整する★ */
-
-    /* min-width: 30px; */ /* 必要ならここに最小幅を指定 */
-
-    /* max-width: 150px; */ /* 必要ならここに最大幅を指定 */
-
-    align-items: center; /* inputとその中のテキストを中央寄せにするため */
-
-    justify-content: center; /* inputとその中のテキストを中央寄せにするため */
-
-    margin: 0 5px; /* ■合計時間（時間枠）と時間の間にスペースを入れる */
-
-}
-
-
-
-/* 合計時間の入力フィールドのスタイル調整 */
-
-#totalTime {
-
-    font-size: 1em;
-
-    font-weight: bold;
-
-    color: #ff0000;
-
-
-
-    border: 1px solid #ccc !important;
-
-    background-color: #fff !important;
-
-    border-radius: 3px;
-
-    padding: 2px 5px;
-
-
-
-    text-align: center;
-
-
-
-    /* 以前の自動調整のプロパティは削除またはコメントアウト */
-
-    /* width: auto; */
-
-    /* min-width: 1ch; */
-
-    /* max-width: fit-content; */
-
-    /* display: inline-block; */
-
-
-
-    width: 100%; /* ★親の .time-input-container の幅いっぱいに広げる★ */
-
-    box-sizing: border-box; /* paddingを含めてwidthを計算するように変更 */
-
-
-
-    flex-shrink: 0; 
-
-    /* margin-right: 5px; */ /* .time-input-container に移動したので不要 */
-
-}
-
-
-
-#totalPrice.guidance-message {
-
-    font-size: 1em; /* 少し大きめに */
-
-    color: #555555; /* グレー系の色 */
-
-    font-weight: normal; /* 太字ではない */
-
-}
-
-
-
-.copy-button {
-
-    padding: 10px 20px;
-
-    background-color: #007bff;
-
-    color: white;
-
-    border: none;
-
-    border-radius: 5px;
-
-    cursor: pointer;
-
-    margin-top: 10px;
-
-    transition: background-color 0.3s ease, opacity 0.3s ease; /* 透明度も変化させる */
-
-    opacity: 0.5; 
-
-    pointer-events: none; 
-
-    cursor: default; 
-
-}
-
-
-
-.copy-button:not(.disabled) {
-
-    opacity: 1;
-
-    pointer-events: auto;
-
-    cursor: pointer;
-
-}
-
-
-
-
-
-/* NOTE: menu-title は以前の提案で使われていましたが、
-
-    今回は b と menu-subtitle で役割を分けています。
-
-    もしHTMLにこのクラスが残っていれば削除してください。
-
-.menu-title {
-
-    font-size: 1.5em;
-
-    text-align: center;
-
-    margin: 10px 0;
-
-}
-
-*/
-
-
-
-.price {
-
-    font-size: 0.8em;
-
-    color: #555;
-
-}
-
-
-
-.set-detail {
-
-    display: block;
-
-    font-size: 0.6em;
-
-    color: #555;
-
-    margin-top: 2px;
-
-}
-
-
-
-/* メッセージ表示エリアのスタイル調整 */
-
-#message-area {
-
-    /* width: 100%; */ /* この行を削除するかコメントアウト */
-
-    width: fit-content; /* ★内容に合わせて幅を自動調整★ */
-
-    min-width: 300px;    /* 最小の幅を設定（必要に応じて調整） */
-
-    max-width: 90%;      /* 最大の幅を設定（画面幅の90%まで） */
-
-    
-
-    min-height: 100px; /* 最低限の高さを確保 */
-
-    /* margin-top: 10px; */ /* これは `margin: 10px auto;` に含める */
-
-    margin: 10px auto; /* ★上下10px、左右autoで中央揃え★ */
-
-    
-
-    padding: 10px;
-
-    box-sizing: border-box;
-
-    border: 1px solid #ccc;
-
-    border-radius: 5px;
-
-    background-color: #f9f9f9;
-
-    color: #333;
-
-    font-size: 14px;
-
-    line-height: 1.5;
-
-    resize: vertical;
-
-    display: none; /* 初期状態は非表示 */
-
-}
-
-
-
-/* エラーメッセージの場合のスタイル */
-
-#message-area.error {
-
-    border-color: #dc3545;
-
-    color: #dc3545;
-
-    background-color: #f8d7da;
-
-}
-
-
-
-.reservation-button {
-
-    display: block;
-
-    width: 80%;
-
-    max-width: 300px;
-
-    margin: 15px auto 0 auto;
-
-    padding: 15px 25px;
-
-    background-color: #28a745;
-
-    color: white;
-
-    border: none;
-
-    border-radius: 8px;
-
-    cursor: pointer;
-
-    font-size: 1.1em;
-
-    text-align: center;
-
-    text-decoration: none;
-
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-
-    transition: background-color 0.3s ease, opacity 0.3s ease;
-
-    opacity: 0.5;
-
-    pointer-events: none;
-
-    cursor: default;
-
-}
-
-
-
-.reservation-button:hover {
-
-    background-color: #218838;
-
-}
-
-
-
-.reservation-button:not(.disabled) {
-
-    opacity: 1;
-
-    pointer-events: auto;
-
-    cursor: pointer;
-
-}
+ .reservation-button:not(.disabled) { 
+     opacity: 1; 
