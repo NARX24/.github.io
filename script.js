@@ -206,7 +206,6 @@ window.keisan = function() { // グローバルスコープに公開
 
     // --- 【修正箇所2: 選択されたセットメニューに含まれる全てのアイテム（パーツ/セット）を非活性にするロジック】 ---
     // 重複がない場合のみ、非活性化処理を行う
-
     // 選択されている全てのセットメニューが最終的に含む全ての個別パーツを洗い出す
     const allContainedPartsBySelectedSets = new Set();
     selectedSetIds.forEach(setId => {
@@ -221,7 +220,7 @@ window.keisan = function() { // グローバルスコープに公開
 
         if (!checkbox || !label) return; // 要素が存在しない場合はスキップ
 
-        // 既に選択されているチェックボックスは、非活性化しない（選択状態を維持するため）
+        // 既に選択されている場合は、非活性化しない（選択状態を維持するため）
         if (checkbox.checked) {
             checkbox.disabled = false;
             label.classList.remove('disabled-item');
@@ -237,25 +236,30 @@ window.keisan = function() { // グローバルスコープに公開
                 shouldDisable = true;
             }
         } else if (item.type === "set") {
-            // 他のセットメニューが、選択されているセットによって完全にカバーされている場合
-            // (つまり、そのセットに含まれる全ての個別パーツが、選択されているいずれかのセットに含まれる個別パーツの集合と一致する場合)
-            
+            // 他のセットメニューが、選択されているセットによって完全にカバーされているか、
+            // または、そのセット自体が選択されているセットの一部である場合
+
             const currentSetFinalParts = new Set(getFinalParts(item.id));
-            let isCompletelyCovered = true;
+            let isCoveredBySelectedSet = true;
 
             // このセットに含まれる全ての最終パーツが、選択されているセットのいずれかによってカバーされているかチェック
-            if (currentSetFinalParts.size > 0) { // 空のセットでない場合のみチェック
-                for (const partId of currentSetFinalParts) {
-                    if (!allContainedPartsBySelectedSets.has(partId)) {
-                        isCompletelyCovered = false;
-                        break;
+            // ただし、このセット自体がselectedSetIdsに含まれる場合は、isCoveredBySelectedSetは常にtrueとなる
+            if (!selectedSetIds.has(item.id)) { // 自身が選択されているセットでなければ
+                if (currentSetFinalParts.size > 0) { // 空のセットでない場合のみチェック
+                    for (const partId of currentSetFinalParts) {
+                        if (!allContainedPartsBySelectedSets.has(partId)) {
+                            isCoveredBySelectedSet = false;
+                            break;
+                        }
                     }
+                } else { // 空のセットはカバーされているとみなさない
+                    isCoveredBySelectedSet = false;
                 }
-            } else { // 空のセットは「完全にカバーされている」とは見なさない（通常は発生しない想定）
-                isCompletelyCovered = false;
+            } else { // 自身が選択されているセットであれば、当然カバーされている
+                isCoveredBySelectedSet = false; // 選択中のセット自身はここでdisabledにしない
             }
 
-            if (isCompletelyCovered) {
+            if (isCoveredBySelectedSet) {
                 shouldDisable = true;
             }
         }
