@@ -229,12 +229,11 @@ window.keisan = function() { // グローバルスコープに公開
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
 
-    // ★ここを修正します★
     // 小数点以下が.0の場合に整数にする
-    if (hours % 1 === 0) { // hoursが整数（例: 2.0, 3.0）の場合
-        currentTotalHours = hours.toString(); // 整数に変換
+    if (hours % 1 === 0) { 
+        currentTotalHours = hours.toString(); 
     } else {
-        currentTotalHours = hours.toFixed(1); // それ以外は小数点以下1桁に固定
+        currentTotalHours = hours.toFixed(1); 
     }
 
     document.getElementById("totalTime").value = currentTotalHours;
@@ -271,110 +270,37 @@ window.copyToClipboard = async function() { // グローバルスコープに公
     try {
         // Clipboard API を使用して自動コピーを試みる
         await navigator.clipboard.writeText(copyText);
-        // ★ここを修正します★
-        // currentTotalHours を再整形して表示
-        let displayHours = currentTotalHours;
-        if (displayHours.endsWith('.0')) {
-            displayHours = displayHours.slice(0, -2); // ".0" を削除
-        }
-        showMessage(`選択内容がコピーされました！\nご予約メニュー【${displayHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`, false);
-        reservationButton.classList.remove("disabled"); // 予約ボタンを活性化
+        // コピー成功時のメッセージ表示
+        showMessage("コピーしました！\n手順②. 予約ページへ進んでください。");
+        // コピーが成功したら予約ボタンを活性化
+        reservationButton.classList.remove("disabled");
+
     } catch (err) {
-        // 自動コピーが失敗した場合（例: HTTPSでない、許可が得られないなど）
-        console.error('Failed to copy: ', err);
-
-        // コピーしたい内容の開始と終了を示すマーカー
-        const selectStartMarker = "---COPY_START---"; // ユニークな文字列
-        const selectEndMarker = "---COPY_END---";    // ユニークな文字列
-
-        // textareaに表示するメッセージを構築
-        // コピー対象部分にマーカーを挿入
-        // ★ここも修正します（手動コピーガイドメッセージ）★
-        let displayHoursForManual = currentTotalHours;
-        if (displayHoursForManual.endsWith('.0')) {
-            displayHoursForManual = displayHoursForManual.slice(0, -2); // ".0" を削除
-        }
-        const fullDisplayMessage = `自動コピーに失敗しました。\n以下の枠内の**ハイライトされた内容をコピー**して手動で貼り付けてください。\n\n${selectStartMarker}${copyText}${selectEndMarker}\n\nご予約メニュー【${displayHoursForManual}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`;
-
-        // メッセージエリアに表示
-        showMessage(fullDisplayMessage, true);
-
-        // textareaの値を一時的に取得
-        let currentText = messageArea.value;
-
-        // マーカーの位置を特定
-        const startIndex = currentText.indexOf(selectStartMarker);
-        const endIndex = currentText.indexOf(selectEndMarker);
-
-        if (startIndex !== -1 && endIndex !== -1) {
-            // 実際の選択開始位置を計算 (マーカーの長さを考慮)
-            const selectionStart = startIndex + selectStartMarker.length;
-            // 実際の選択終了位置を計算
-            const selectionEnd = endIndex;
-
-            // マーカーを削除した最終的な表示文字列
-            const finalDisplay = currentText.replace(selectStartMarker, "").replace(selectEndMarker, "");
-            messageArea.value = finalDisplay;
-
-            // 選択範囲を設定
-            // マーカー削除後のテキストでの正しい選択範囲を再計算
-            // 例えば、マーカーの長さが selectionStart と selectionEnd から引かれる
-            const adjustedSelectionStart = selectionStart - selectStartMarker.length;
-            const adjustedSelectionEnd = selectionEnd - selectStartMarker.length;
-
-            // 選択範囲を適用
-            // setTimeoutを使うことで、textareaのvalueがDOMに反映されてからselectが実行されるようにする
-            // これにより、特にiOSなどのモバイルブラウザで選択が安定する
-            setTimeout(() => {
-                messageArea.focus(); // フォーカスを当てる
-                messageArea.setSelectionRange(adjustedSelectionStart, adjustedSelectionEnd);
-            }, 0);
-
-        } else {
-            // マーカーが見つからない場合は、全選択する（フォールバック）
-            messageArea.select();
-        }
-        reservationButton.classList.remove("disabled"); // 予約ボタンを活性化
+        console.error('クリップボードへのコピーに失敗しました:', err);
+        showMessage("クリップボードへのコピーに失敗しました。手動でコピーしてください。", true);
+        // コピー失敗時も予約ボタンは非活性のまま
+        reservationButton.classList.add("disabled");
     }
 }
 
-function showMessage(message, isError) {
+/**
+ * メッセージを表示するヘルパー関数
+ * @param {string} message - 表示するメッセージ
+ * @param {boolean} isError - エラーメッセージかどうか
+ */
+function showMessage(message, isError = false) {
     const messageArea = document.getElementById("message-area");
-    messageArea.value = message; // textareaなのでvalueを設定
+    messageArea.value = message;
+    messageArea.style.display = "block"; // メッセージエリアを表示
     if (isError) {
-        messageArea.classList.add("error");
+        messageArea.classList.add('error');
     } else {
-        messageArea.classList.remove("error");
-    }
-    messageArea.style.display = "block";
-
-    // エラーメッセージが表示された場合にのみスクロール
-    if (isError) {
-        messageArea.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        messageArea.classList.remove('error');
     }
 }
 
-// DOMContentLoaded イベントリスナーを使用
-document.addEventListener('DOMContentLoaded', (event) => {
-    // 初期表示メッセージを設定
-    const totalPriceDisplay = document.getElementById("totalPrice");
-    totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
-    totalPriceDisplay.classList.add('guidance-message');
-
-    // 計算関数を呼び出し、ボタンの状態を初期化
-    // これにより、初期ロード時にもボタンの非活性化などが正しく適用されます。
-    keisan();
-
-    // コピーボタンのイベントリスナーを登録
-    const copyButton = document.getElementById("copyButton");
-    if (copyButton) {
-        copyButton.addEventListener('click', window.copyToClipboard);
-    }
-
-    // 予約ボタンも初期化時に参照しておくと良いでしょう（必要であれば）
-    // const reservationButton = document.getElementById("reservationButton");
-    // if (reservationButton) {
-    //    // reservationButtonの初期状態をここで設定
-    //    // 例: reservationButton.classList.add("disabled");
-    // }
+// 初期計算の実行
+document.addEventListener('DOMContentLoaded', () => {
+    keisan(); // ページロード時に一度計算を実行して初期表示を整える
+    document.getElementById("copyButton").addEventListener("click", copyToClipboard);
 });
