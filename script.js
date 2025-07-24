@@ -3,7 +3,7 @@ const items = [
     // ■セットメニュー■
     { id: "set_eyebrow", name: "眉毛セット", time: 40, price: 11000, parts: ["part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullface", name: "全顔セット", time: 65, price: 13200, parts: ["part_nose_under", "part_mouth_under", "part_cheek", "part_face_line", "part_neck"], type: "set" },
-    // 新しく追加する項目
+    // 全顔+眉毛脱毛セット の時間、料金、パーツを修正
     { id: "set_fullface_eyebrow", name: "全顔+眉毛脱毛セット", time: 105, price: 22000, parts: ["set_fullface", "part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullbody_all", name: "全身オール（顔、VIO含む）", time: 270, price: 52800, parts: ["set_upperbody", "set_lowerbody"], type: "set" },
     { id: "set_fullbody_noface", name: "顔なし全身", time: 200, price: 41800, parts: ["part_armpit", "part_nape", "part_back_upper", "part_back_lower", "part_chest_nipple", "part_abdomen_navel", "part_elbow_upper", "part_elbow_lower", "part_hand_finger", "part_v_line", "part_i_line", "part_o_line", "part_buttocks", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
@@ -32,7 +32,7 @@ const items = [
     { id: "part_chest_nipple", name: "胸（乳輪周り含む）", time: 16, price: 6600, parts: ["part_chest_nipple"], type: "part" },
     { id: "part_abdomen_navel", name: "腹部（ヘソ下含む）", time: 16, price: 6600, parts: ["part_abdomen_navel"], type: "part" },
     { id: "part_back_upper", name: "背中上", time: 16, price: 6600, parts: ["part_back_upper"], type: "part" },
-    { id: "part_back_lower", name: "背中下", time: 16, price: 6600, parts: ["part_back_lower"], type: "part" },
+    { id: "part_back_lower", time: 16, price: 6600, parts: ["part_back_lower"], type: "part" },
     { id: "part_buttocks", name: "臀部（おしり）", time: 16, price: 6600, parts: ["part_buttocks"], type: "part" },
     // 【腕・足】
     { id: "part_elbow_upper", name: "肘上", time: 16, price: 6600, parts: ["part_elbow_upper"], type: "part" },
@@ -94,16 +94,17 @@ function getFinalParts(itemId, currentPath = new Set()) {
         return finalParts;
     }
 
-    if (item.type === "part") {
-        // 個別パーツであれば、それ自体が最終パーツ
-        finalParts.push(itemId);
-    } else if (item.type === "set" && item.parts && item.parts.length > 0) {
-        // セットメニューであれば、含まれる各パーツを展開
+    // item.partsがある場合のみ再帰的に展開
+    if (item.parts && item.parts.length > 0) {
         item.parts.forEach(partId => {
             // 各子要素を展開し、結果をfinalPartsに追加
             finalParts.push(...getFinalParts(partId, currentPath));
         });
+    } else if (item.type === "part") {
+        // partsがないが、タイプが"part"であれば、それ自体が最終パーツ
+        finalParts.push(itemId);
     }
+    // もしtypeが"set"だがpartsがない場合は何も追加しない
 
     currentPath.delete(itemId); // パスから削除
 
@@ -189,9 +190,10 @@ window.keisan = function() { // グローバルスコープに公開
 
     if (duplicatePartNames.length > 0) {
         const uniqueDuplicates = [...new Set(duplicatePartNames)];
-        showMessage("選択したメニューに重複する部位が含まれています。\n選択を修正してください。\n重複部位: " + uniqueDuplicates.join("、"), true);
+        // メッセージを「選択を見直してください」に変更
+        showMessage("選択を見直してください\n重複する部位が含まれています。\n重複部位: " + uniqueDuplicates.join("、"), true);
 
-        // totalTimeInput.value を "選択を見直してください" に変更
+        // totalTimeInput.value を「選択を見直してください」に変更
         totalTimeInput.value = "選択を見直してください"; 
         totalPriceDisplay.textContent = "料金合計: 0円（税込）"; // 重複がある場合は0円表示
         totalPriceDisplay.classList.remove('guidance-message'); // スタイルを戻す
