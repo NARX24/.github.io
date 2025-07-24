@@ -3,7 +3,7 @@ const items = [
     // ■セットメニュー■
     { id: "set_eyebrow", name: "眉毛セット", time: 40, price: 11000, parts: ["part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullface", name: "全顔セット", time: 65, price: 13200, parts: ["part_nose_under", "part_mouth_under", "part_cheek", "part_face_line", "part_neck"], type: "set" },
-    // 全顔+眉毛脱毛セット の時間、料金、パーツを修正
+    // 全顔+眉毛脱毛セット の時間、料金、パーツは問題ありません。
     { id: "set_fullface_eyebrow", name: "全顔+眉毛脱毛セット", time: 105, price: 22000, parts: ["set_fullface", "part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullbody_all", name: "全身オール（顔、VIO含む）", time: 270, price: 52800, parts: ["set_upperbody", "set_lowerbody"], type: "set" },
     { id: "set_fullbody_noface", name: "顔なし全身", time: 200, price: 41800, parts: ["part_armpit", "part_nape", "part_back_upper", "part_back_lower", "part_chest_nipple", "part_abdomen_navel", "part_elbow_upper", "part_elbow_lower", "part_hand_finger", "part_v_line", "part_i_line", "part_o_line", "part_buttocks", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
@@ -21,42 +21,42 @@ const items = [
 
     // ■パーツメニュー■
     // 【顔】
-    { id: "part_nose_under", name: "鼻下", time: 16, price: 4400, parts: ["part_nose_under"], type: "part" },
-    { id: "part_mouth_under", name: "口下", time: 16, price: 4400, parts: ["part_mouth_under"], type: "part" },
-    { id: "part_cheek", name: "頬", time: 16, price: 4400, parts: ["part_cheek"], type: "part" },
-    { id: "part_face_line", name: "フェイスライン", time: 16, price: 4400, parts: ["part_face_line"], type: "part" },
-    { id: "part_neck", time: 16, price: 4400, parts: ["part_neck"], type: "part" },
+    { id: "part_nose_under", name: "鼻下", time: 16, price: 4400, type: "part" }, // partsプロパティは不要なので削除またはコメントアウト
+    { id: "part_mouth_under", name: "口下", time: 16, price: 4400, type: "part" },
+    { id: "part_cheek", name: "頬", time: 16, price: 4400, type: "part" },
+    { id: "part_face_line", name: "フェイスライン", time: 16, price: 4400, type: "part" },
+    { id: "part_neck", time: 16, price: 4400, type: "part" },
     // 【胴】
-    { id: "part_nape", name: "うなじ", time: 16, price: 4400, parts: ["part_nape"], type: "part" },
-    { id: "part_armpit", name: "脇", time: 13, price: 4400, parts: ["part_armpit"], type: "part" },
-    { id: "part_chest_nipple", name: "胸（乳輪周り含む）", time: 16, price: 6600, parts: ["part_chest_nipple"], type: "part" },
-    { id: "part_abdomen_navel", name: "腹部（ヘソ下含む）", time: 16, price: 6600, parts: ["part_abdomen_navel"], type: "part" },
-    { id: "part_back_upper", name: "背中上", time: 16, price: 6600, parts: ["part_back_upper"], type: "part" },
-    { id: "part_back_lower", time: 16, price: 6600, parts: ["part_back_lower"], type: "part" },
-    { id: "part_buttocks", name: "臀部（おしり）", time: 16, price: 6600, parts: ["part_buttocks"], type: "part" },
+    { id: "part_nape", name: "うなじ", time: 16, price: 4400, type: "part" },
+    { id: "part_armpit", name: "脇", time: 13, price: 4400, type: "part" },
+    { id: "part_chest_nipple", name: "胸（乳輪周り含む）", time: 16, price: 6600, type: "part" },
+    { id: "part_abdomen_navel", name: "腹部（ヘソ下含む）", time: 16, price: 6600, type: "part" },
+    { id: "part_back_upper", name: "背中上", time: 16, price: 6600, type: "part" },
+    { id: "part_back_lower", time: 16, price: 6600, type: "part" },
+    { id: "part_buttocks", name: "臀部（おしり）", time: 16, price: 6600, type: "part" },
     // 【腕・足】
-    { id: "part_elbow_upper", name: "肘上", time: 16, price: 6600, parts: ["part_elbow_upper"], type: "part" },
-    { id: "part_elbow_lower", name: "肘下", time: 18, price: 6600, parts: ["part_elbow_lower"], type: "part" },
-    { id: "part_hand_finger", name: "手の甲+指", time: 12, price: 4400, parts: ["part_hand_finger"], type: "part" },
-    { id: "part_knee_upper", name: "膝上", time: 35, price: 8800, parts: ["part_knee_upper"], type: "part" },
-    { id: "part_knee_lower", name: "膝下", time: 35, price: 8800, parts: ["part_knee_lower"], type: "part" },
-    { id: "part_foot_toe", name: "足の甲＋指", time: 12, price: 4400, parts: ["part_foot_toe"], type: "part" },
+    { id: "part_elbow_upper", name: "肘上", time: 16, price: 6600, type: "part" },
+    { id: "part_elbow_lower", name: "肘下", time: 18, price: 6600, type: "part" },
+    { id: "part_hand_finger", name: "手の甲+指", time: 12, price: 4400, type: "part" },
+    { id: "part_knee_upper", name: "膝上", time: 35, price: 8800, type: "part" },
+    { id: "part_knee_lower", name: "膝下", time: 35, price: 8800, type: "part" },
+    { id: "part_foot_toe", name: "足の甲＋指", time: 12, price: 4400, type: "part" },
     // 【VIO】
-    { id: "part_v_line", name: "Vライン", time: 16, price: 7700, parts: ["part_v_line"], type: "part" },
-    { id: "part_i_line", name: "Iライン", time: 20, price: 7700, parts: ["part_i_line"], type: "part" },
-    { id: "part_o_line", name: "Oライン", time: 16, price: 5500, parts: ["part_o_line"], type: "part" },
+    { id: "part_v_line", name: "Vライン", time: 16, price: 7700, type: "part" },
+    { id: "part_i_line", name: "Iライン", time: 20, price: 7700, type: "part" },
+    { id: "part_o_line", name: "Oライン", time: 16, price: 5500, type: "part" },
     // 【特殊部位】
-    { id: "part_forehead", name: "おでこ", time: 13, price: 4400, parts: ["part_forehead"], type: "part" },
-    { id: "part_eyebrow_upper", name: "眉上", time: 13, price: 4400, parts: ["part_eyebrow_upper"], type: "part" },
-    { id: "part_eyebrow_lower", name: "眉下", time: 13, price: 2200, parts: ["part_eyebrow_lower"], type: "part" },
-    { id: "part_eyebrow_middle", name: "眉中", time: 13, price: 2200, parts: ["part_eyebrow_middle"], type: "part" },
-    { id: "part_small_nose", name: "小鼻", time: 13, price: 4400, parts: ["part_small_nose"], type: "part" },
-    { id: "part_nose_hair", name: "鼻毛", time: 20, price: 4400, parts: ["part_nose_hair"], type: "part" },
-    { id: "part_tragus", name: "耳珠", time: 13, price: 3300, parts: ["part_tragus"], type: "part" },
-    { id: "part_earlobe", name: "耳たぶ", time: 13, price: 4400, parts: ["part_earlobe"], type: "part" },
-    { id: "part_nipple", name: "乳輪周り", time: 10, price: 4400, parts: ["part_nipple"], type: "part" },
-    { id: "part_navel_under", name: "ヘソ下", time: 10, price: 4400, parts: ["part_navel_under"], type: "part" },
-    { id: "part_design_fee", name: "デザイン料", time: 0, price: 0, parts: ["part_design_fee"], type: "part" }
+    { id: "part_forehead", name: "おでこ", time: 13, price: 4400, type: "part" },
+    { id: "part_eyebrow_upper", name: "眉上", time: 13, price: 4400, type: "part" },
+    { id: "part_eyebrow_lower", time: 13, price: 2200, type: "part" },
+    { id: "part_eyebrow_middle", time: 13, price: 2200, type: "part" },
+    { id: "part_small_nose", name: "小鼻", time: 13, price: 4400, type: "part" },
+    { id: "part_nose_hair", name: "鼻毛", time: 20, price: 4400, type: "part" },
+    { id: "part_tragus", name: "耳珠", time: 13, price: 3300, type: "part" },
+    { id: "part_earlobe", name: "耳たぶ", time: 13, price: 4400, type: "part" },
+    { id: "part_nipple", name: "乳輪周り", time: 10, price: 4400, type: "part" },
+    { id: "part_navel_under", name: "ヘソ下", time: 10, price: 4400, type: "part" },
+    { id: "part_design_fee", name: "デザイン料", time: 0, price: 0, type: "part" }
 ];
 
 let copyText = ""; // コピーするテキストを格納する変数
@@ -78,7 +78,7 @@ items.forEach(item => {
 function getFinalParts(itemId, currentPath = new Set()) {
     // 無限ループ防止: 現在のパスにitemIdが含まれていれば、空の配列を返す（循環参照）
     if (currentPath.has(itemId)) {
-        console.warn(`Circular reference detected for item: ${itemId}. Returning empty array.`);
+        // console.warn(`Circular reference detected for item: ${itemId}. Returning empty array.`); // デバッグ用
         return [];
     }
 
@@ -89,22 +89,21 @@ function getFinalParts(itemId, currentPath = new Set()) {
     const item = itemMap.get(itemId);
 
     if (!item) {
-        console.warn(`Item with ID "${itemId}" not found in itemMap.`);
+        // console.warn(`Item with ID "${itemId}" not found in itemMap.`); // デバッグ用
         currentPath.delete(itemId); // パスから削除
         return finalParts;
     }
 
-    // item.partsがある場合のみ再帰的に展開
-    if (item.parts && item.parts.length > 0) {
+    if (item.type === "set" && item.parts && item.parts.length > 0) {
+        // セットメニューであれば、含まれる各パーツIDを再帰的に展開
         item.parts.forEach(partId => {
-            // 各子要素を展開し、結果をfinalPartsに追加
             finalParts.push(...getFinalParts(partId, currentPath));
         });
     } else if (item.type === "part") {
-        // partsがないが、タイプが"part"であれば、それ自体が最終パーツ
+        // 個別パーツであれば、そのパーツID自体を最終パーツとして追加
         finalParts.push(itemId);
     }
-    // もしtypeが"set"だがpartsがない場合は何も追加しない
+    // もしtypeが"set"だがpartsがない場合は何も追加しない（これはデータ設計による）
 
     currentPath.delete(itemId); // パスから削除
 
@@ -155,13 +154,23 @@ window.keisan = function() { // グローバルスコープに公開
 
             // 画面表示用のテキストを生成（詳細情報を含む）
             let setDetailText = '';
+            // set_fullface_eyebrow の parts に 'set_fullface' が含まれているため、
+            // その 'set_fullface' も展開して表示名を取得できるようにする
             if (item.type === "set" && item.parts && item.parts.length > 0) {
-                const finalExpandedNames = getFinalParts(item.id).map(partId => {
+                const finalExpandedNames = item.parts.flatMap(partId => { // flatMapで展開
                     const subItem = itemMap.get(partId);
-                    // 丸括弧内のテキストを除去
-                    return subItem ? subItem.name.replace(/（[^）]*）/g, '') : '';
+                    if (subItem && subItem.type === "set") {
+                        // ネストされたセットがあれば、その中の最終パーツ名も取得
+                        return getFinalParts(subItem.id).map(nestedPartId => {
+                            const nestedSubItem = itemMap.get(nestedPartId);
+                            return nestedSubItem ? nestedSubItem.name.replace(/（[^）]*）/g, '') : '';
+                        });
+                    } else {
+                        // 個別パーツであればその名前を直接取得
+                        return subItem ? subItem.name.replace(/（[^）]*）/g, '') : '';
+                    }
                 }).filter(name => name !== '');
-                setDetailText = finalExpandedNames.length > 0 ? `＜${finalExpandedNames.join("・")}＞` : '';
+                setDetailText = finalExpandedNames.length > 0 ? `＜${[...new Set(finalExpandedNames)].join("・")}＞` : ''; // 重複を除去して表示
             }
             selectedPartsDisplay.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`);
 
