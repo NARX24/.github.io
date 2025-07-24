@@ -6,31 +6,27 @@ body {
 }
 
 #scroll-container {
-    /* スクロール可能な領域の高さ。下部の固定要素（ボタンなど）を考慮して調整 */
-    max-height: calc(100vh - 350px); 
+    max-height: calc(100vh - 350px); /* 予約ボタンの高さ分、さらに縮める */
     overflow-y: auto;
-    -webkit-overflow-scrolling: touch; /* iOSでのスクロールをスムーズにする */
-    padding-bottom: 250px; /* 下部の固定要素が重ならないようにパディングを追加 */
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 250px; /* 必要に応じて調整 */
 }
 
 #form-container {
     width: 100%;
-    /* モバイルでの見栄えを良くするために最大幅と中央寄せを追加しても良いでしょう */
-    /* max-width: 600px; */
-    /* margin: 0 auto; */
 }
 
 table {
     width: 100%;
-    border-collapse: collapse; /* セルの境界線を結合 */
-    table-layout: auto; /* テーブルの幅を内容に基づいて自動調整 */
+    border-collapse: collapse;
+    table-layout: auto;
 }
 
 td {
-    padding: 4px 8px; /* セルの内側の余白 */
-    vertical-align: top; /* セルの内容を上揃え */
-    word-wrap: break-word; /* 長い単語を自動改行 */
-    max-width: 200px; /* セルの最大幅（コンテンツがはみ出さないように） */
+    padding: 4px 8px;
+    vertical-align: top;
+    word-wrap: break-word;
+    max-width: 200px;
 }
 
 /* メイン分類（セットメニュー、パーツメニュー）のスタイル */
@@ -53,17 +49,18 @@ b {
     display: block; /* marginを適用するため */
 }
 
+
 input[type="checkbox"] {
-    margin-right: 5px; /* チェックボックスとテキストの間の余白 */
+    margin-right: 5px;
 }
 
 /* ============================================== */
-/* 【重要】非活性時のスタイル */
+/* 【追加箇所】非活性時のスタイル */
 .disabled-item {
     /* labelタグに適用されるクラス */
     color: #aaa; /* 薄い灰色 */
     cursor: not-allowed; /* カーソルを禁止マークに */
-    /* text-decoration: line-through; /* 打消し線を入れる場合はコメントアウトを解除 */
+    /* その他のスタイル調整（必要であれば） */
 }
 
 .disabled-item input[type="checkbox"] {
@@ -73,36 +70,39 @@ input[type="checkbox"] {
 }
 /* ============================================== */
 
+
 .total-row-wrapper {
-    position: fixed; /* 画面下部に固定 */
+    position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: #DDDDDD; /* 背景色 */
-    padding: 10px; /* 内側の余白 */
-    text-align: center; /* 要素を中央揃え */
-    border-top: 1px solid #aaa; /* 上部の境界線 */
-    box-shadow: 0 -2px 5px rgba(0,0,0,0.1); /* 上部に影をつける */
-    z-index: 1000; /* 他の要素より手前に表示 */
+    background-color: #DDDDDD;
+    padding: 10px;
+    text-align: center;
+    border-top: 1px solid #aaa;
+    box-shadow: 0 -2px 5px rgba(0,0,0,0.1);
+    z-index: 1000;
 }
 
+/* .total-row を元のFlexbox設定に戻す */
 .total-row {
-    font-size: 1.2em; /* 合計行の文字サイズ */
-    color: #444444; /* 文字色 */
-    display: flex;          /* Flexboxコンテナに設定 */
-    flex-direction: column; /* 要素を縦方向に並べる */
-    align-items: center;    /* 子要素を中央揃え */
-    padding-right: 20px; /* 右側の余白（もし必要な場合） */
+    font-size: 1.2em;
+    color: #444444;
+    display: flex;         /* ★ここを戻します！★ */
+    flex-direction: column; /* ★ここも戻します！★ */
+    align-items: center;    /* ★ここも戻します！★ */
+    padding-right: 20px;
+    /* text-align: center; */ /* これは不要になりますので削除かコメントアウト */
 }
 
 /* 新しいコンテナ .time-input-container のスタイル */
 .time-input-container {
-    display: inline-flex; /* inputを囲むコンテナをinline-flexにする */
-    width: fit-content;    /* 内容に合わせて幅を調整する */
+    display: inline-flex; /* ★inputを囲むコンテナをinline-flexにする★ */
+    width: fit-content;    /* ★内容に合わせて幅を調整する★ */
     /* min-width: 30px; */ /* 必要ならここに最小幅を指定 */
     /* max-width: 150px; */ /* 必要ならここに最大幅を指定 */
-    align-items: center; /* inputとその中のテキストを垂直方向中央寄せ */
-    justify-content: center; /* inputとその中のテキストを水平方向中央寄せ */
+    align-items: center; /* inputとその中のテキストを中央寄せにするため */
+    justify-content: center; /* inputとその中のテキストを中央寄せにするため */
     margin: 0 5px; /* ■合計時間（時間枠）と時間の間にスペースを入れる */
 }
 
@@ -110,15 +110,26 @@ input[type="checkbox"] {
 #totalTime {
     font-size: 1em;
     font-weight: bold;
-    color: #ff0000; /* 赤色 */
-    border: 1px solid #ccc !important; /* 境界線 */
-    background-color: #fff !important; /* 背景色 */
-    border-radius: 3px; /* 角を丸くする */
-    padding: 2px 5px; /* 内側の余白 */
-    text-align: center; /* テキストを中央揃え */
-    width: 100%; /* 親の .time-input-container の幅いっぱいに広げる */
+    color: #ff0000;
+
+    border: 1px solid #ccc !important;
+    background-color: #fff !important;
+    border-radius: 3px;
+    padding: 2px 5px;
+
+    text-align: center;
+
+    /* 以前の自動調整のプロパティは削除またはコメントアウト */
+    /* width: auto; */
+    /* min-width: 1ch; */
+    /* max-width: fit-content; */
+    /* display: inline-block; */
+
+    width: 100%; /* ★親の .time-input-container の幅いっぱいに広げる★ */
     box-sizing: border-box; /* paddingを含めてwidthを計算するように変更 */
-    flex-shrink: 0; /* Flexアイテムが縮小しないように */
+
+    flex-shrink: 0; 
+    /* margin-right: 5px; */ /* .time-input-container に移動したので不要 */
 }
 
 #totalPrice.guidance-message {
@@ -136,20 +147,27 @@ input[type="checkbox"] {
     cursor: pointer;
     margin-top: 10px;
     transition: background-color 0.3s ease, opacity 0.3s ease; /* 透明度も変化させる */
-    opacity: 0.5; /* 初期は半透明 */
-    pointer-events: none; /* 初期はクリック無効 */
-    cursor: default; /* 初期カーソルはデフォルト */
-}
-
-.copy-button:hover {
-    background-color: #0056b3; /* ホバー時の背景色 */
+    opacity: 0.5; 
+    pointer-events: none; 
+    cursor: default; 
 }
 
 .copy-button:not(.disabled) {
-    opacity: 1; /* disabledクラスがない場合は不透明 */
-    pointer-events: auto; /* disabledクラスがない場合はクリック有効 */
-    cursor: pointer; /* disabledクラスがない場合はカーソルをポインタに */
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
 }
+
+
+/* NOTE: menu-title は以前の提案で使われていましたが、
+    今回は b と menu-subtitle で役割を分けています。
+    もしHTMLにこのクラスが残っていれば削除してください。
+.menu-title {
+    font-size: 1.5em;
+    text-align: center;
+    margin: 10px 0;
+}
+*/
 
 .price {
     font-size: 0.8em;
@@ -157,53 +175,69 @@ input[type="checkbox"] {
 }
 
 .set-detail {
-    display: block; /* 別行に表示 */
-    font-size: 0.6em; /* 小さめの文字サイズ */
-    color: #555; /* 薄い文字色 */
-    margin-top: 2px; /* 上部の余白 */
+    display: block;
+    font-size: 0.6em;
+    color: #555;
+    margin-top: 2px;
 }
 
 /* メッセージ表示エリアのスタイル調整 */
 #message-area {
-    width: fit-content; /* 内容に合わせて幅を自動調整 */
+    /* width: 100%; */ /* この行を削除するかコメントアウト */
+    width: fit-content; /* ★内容に合わせて幅を自動調整★ */
     min-width: 300px;    /* 最小の幅を設定（必要に応じて調整） */
     max-width: 90%;      /* 最大の幅を設定（画面幅の90%まで） */
     
     min-height: 100px; /* 最低限の高さを確保 */
-    margin: 10px auto; /* 上下10px、左右autoで中央揃え */
+    /* margin-top: 10px; */ /* これは `margin: 10px auto;` に含める */
+    margin: 10px auto; /* ★上下10px、左右autoで中央揃え★ */
     
     padding: 10px;
-    box-sizing: border-box; /* paddingを含めてwidthを計算 */
+    box-sizing: border-box;
     border: 1px solid #ccc;
     border-radius: 5px;
     background-color: #f9f9f9;
     color: #333;
     font-size: 14px;
     line-height: 1.5;
-    resize: vertical; /* 垂直方向のみリサイズ可能 */
+    resize: vertical;
     display: none; /* 初期状態は非表示 */
 }
 
 /* エラーメッセージの場合のスタイル */
 #message-area.error {
-    border-color: #dc3545; /* 赤い枠線 */
-    color: #dc3545; /* 赤い文字色 */
-    background-color: #f8d7da; /* 薄い赤い背景色 */
+    border-color: #dc3545;
+    color: #dc3545;
+    background-color: #f8d7da;
 }
 
 .reservation-button {
-    display: block; /* ブロック要素に設定 */
-    width: 80%; /* 幅を80%に設定 */
-    max-width: 300px; /* 最大幅 */
-    margin: 15px auto 0 auto; /* 上部の余白、左右中央揃え */
-    padding: 15px 25px; /* 内側の余白 */
-    background-color: #28a745; /* 緑色 */
-    color: white; /* 文字色 */
-    border: none; /* 境界線なし */
-    border-radius: 8px; /* 角を丸くする */
-    cursor: pointer; /* カーソルをポインタに */
-    font-size: 1.1em; /* 文字サイズ */
-    text-align: center; /* テキスト中央揃え */
-    text-decoration: none; /* 下線なし */
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1); /* 影 */
-    transition: background-color 0.3s ease, opacity 0.3s ease; /* ホバー時のアニメーション */
+    display: block;
+    width: 80%;
+    max-width: 300px;
+    margin: 15px auto 0 auto;
+    padding: 15px 25px;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 1.1em;
+    text-align: center;
+    text-decoration: none;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    transition: background-color 0.3s ease, opacity 0.3s ease;
+    opacity: 0.5;
+    pointer-events: none;
+    cursor: default;
+}
+
+.reservation-button:hover {
+    background-color: #218838;
+}
+
+.reservation-button:not(.disabled) {
+    opacity: 1;
+    pointer-events: auto;
+    cursor: pointer;
+}
