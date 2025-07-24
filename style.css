@@ -39,6 +39,21 @@ b {
     color: #2f4f4f; /* 色も少し濃いめにすると良いかもしれません */
 }
 
+/* 新しい装飾スタイル */
+.menu-category-title {
+    background-color: #36454F; /* ダークグレーの背景 */
+    color: white; /* 文字色を白に */
+    padding: 8px 15px; /* 内側の余白 */
+    border-radius: 8px; /* 角を丸くする */
+    display: inline-block; /* text-align: center; と併用するため */
+    margin: 20px auto 15px auto; /* 中央揃えと上下の余白 */
+    text-align: center; /* 中央揃え */
+    width: fit-content; /* 内容に合わせて幅を調整 */
+    min-width: 200px; /* 最小幅を設定（必要であれば） */
+    box-sizing: border-box; /* paddingを含めて幅を計算 */
+}
+
+
 /* サブ分類（顔、胴など）のスタイル */
 .menu-subtitle {
     font-size: 1.1em; /* サブ分類の文字サイズ */
@@ -238,6 +253,4 @@ input[type="checkbox"] {
 
 .reservation-button:not(.disabled) {
     opacity: 1;
-    pointer-events: auto;
-    cursor: pointer;
-}
+    pointer-
