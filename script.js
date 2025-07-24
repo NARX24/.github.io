@@ -3,7 +3,6 @@ const items = [
     // ■セットメニュー■
     { id: "set_eyebrow", name: "眉毛セット", time: 40, price: 11000, parts: ["part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullface", name: "全顔セット", time: 65, price: 13200, parts: ["part_nose_under", "part_mouth_under", "part_cheek", "part_face_line", "part_neck"], type: "set" },
-    // 全顔+眉毛脱毛セット の時間、料金、パーツは問題ありません。
     { id: "set_fullface_eyebrow", name: "全顔+眉毛脱毛セット", time: 105, price: 22000, parts: ["set_fullface", "part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullbody_all", name: "全身オール（顔、VIO含む）", time: 270, price: 52800, parts: ["set_upperbody", "set_lowerbody"], type: "set" },
     { id: "set_fullbody_noface", name: "顔なし全身", time: 200, price: 41800, parts: ["part_armpit", "part_nape", "part_back_upper", "part_back_lower", "part_chest_nipple", "part_abdomen_navel", "part_elbow_upper", "part_elbow_lower", "part_hand_finger", "part_v_line", "part_i_line", "part_o_line", "part_buttocks", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
@@ -21,7 +20,9 @@ const items = [
 
     // ■パーツメニュー■
     // 【顔】
-    { id: "part_nose_under", name: "鼻下", time: 16, price: 4400, type: "part" }, // partsプロパティは不要なので削除またはコメントアウト
+    // partタイプのitemsは、partsプロパティを持たない（あるいは空配列）とするのが望ましい
+    // getFinalPartsのロジックを堅牢にするため、このまま維持します
+    { id: "part_nose_under", name: "鼻下", time: 16, price: 4400, type: "part" }, 
     { id: "part_mouth_under", name: "口下", time: 16, price: 4400, type: "part" },
     { id: "part_cheek", name: "頬", time: 16, price: 4400, type: "part" },
     { id: "part_face_line", name: "フェイスライン", time: 16, price: 4400, type: "part" },
@@ -39,7 +40,7 @@ const items = [
     { id: "part_elbow_lower", name: "肘下", time: 18, price: 6600, type: "part" },
     { id: "part_hand_finger", name: "手の甲+指", time: 12, price: 4400, type: "part" },
     { id: "part_knee_upper", name: "膝上", time: 35, price: 8800, type: "part" },
-    { id: "part_knee_lower", name: "膝下", time: 35, price: 8800, type: "part" },
+    { id: "part_knee_lower", time: 35, price: 8800, type: "part" },
     { id: "part_foot_toe", name: "足の甲＋指", time: 12, price: 4400, type: "part" },
     // 【VIO】
     { id: "part_v_line", name: "Vライン", time: 16, price: 7700, type: "part" },
@@ -103,7 +104,7 @@ function getFinalParts(itemId, currentPath = new Set()) {
         // 個別パーツであれば、そのパーツID自体を最終パーツとして追加
         finalParts.push(itemId);
     }
-    // もしtypeが"set"だがpartsがない場合は何も追加しない（これはデータ設計による）
+    // else: typeが不明、またはsetだがpartsプロパティがない場合は何も追加しない
 
     currentPath.delete(itemId); // パスから削除
 
@@ -157,19 +158,24 @@ window.keisan = function() { // グローバルスコープに公開
             // set_fullface_eyebrow の parts に 'set_fullface' が含まれているため、
             // その 'set_fullface' も展開して表示名を取得できるようにする
             if (item.type === "set" && item.parts && item.parts.length > 0) {
-                const finalExpandedNames = item.parts.flatMap(partId => { // flatMapで展開
+                const finalExpandedNames = [];
+                item.parts.forEach(partId => {
                     const subItem = itemMap.get(partId);
-                    if (subItem && subItem.type === "set") {
-                        // ネストされたセットがあれば、その中の最終パーツ名も取得
-                        return getFinalParts(subItem.id).map(nestedPartId => {
-                            const nestedSubItem = itemMap.get(nestedPartId);
-                            return nestedSubItem ? nestedSubItem.name.replace(/（[^）]*）/g, '') : '';
-                        });
-                    } else {
-                        // 個別パーツであればその名前を直接取得
-                        return subItem ? subItem.name.replace(/（[^）]*）/g, '') : '';
+                    if (subItem) {
+                        if (subItem.type === "set") {
+                            // ネストされたセットであれば、その中の最終パーツ名も取得
+                            getFinalParts(subItem.id).forEach(nestedPartId => {
+                                const nestedSubItem = itemMap.get(nestedPartId);
+                                if (nestedSubItem) {
+                                    finalExpandedNames.push(nestedSubItem.name.replace(/（[^）]*）/g, ''));
+                                }
+                            });
+                        } else if (subItem.type === "part") {
+                            // 個別パーツであればその名前を直接追加
+                            finalExpandedNames.push(subItem.name.replace(/（[^）]*）/g, ''));
+                        }
                     }
-                }).filter(name => name !== '');
+                });
                 setDetailText = finalExpandedNames.length > 0 ? `＜${[...new Set(finalExpandedNames)].join("・")}＞` : ''; // 重複を除去して表示
             }
             selectedPartsDisplay.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`);
@@ -180,6 +186,7 @@ window.keisan = function() { // グローバルスコープに公開
 
             // 選択されたアイテムの最終的な個別パーツIDリストを取得
             const partsToCheck = getFinalParts(item.id);
+            // console.log(`Checking item: ${item.id}, Parts:`, partsToCheck); // デバッグ用
 
             partsToCheck.forEach(partId => {
                 // そのパーツIDがすでに選択済みの最終パーツリストにあるかチェック
@@ -227,6 +234,9 @@ window.keisan = function() { // グローバルスコープに公開
                 const partLabel = document.getElementById(`label_${partId}`); 
                 // セット自体は非活性にしない、個別パーツのみ対象
                 if (partCheckbox && itemMap.get(partId).type === "part") { 
+                    // 選択されているセットに含まれるパーツはdisabledにするが、
+                    // そのパーツ自体が手動でチェックされていた場合は、
+                    // totalTimeやtotalPriceからその値を引く必要がある。（現状はsetが優先されるので問題なし）
                     partCheckbox.disabled = true; // チェックボックスを無効化
                     partCheckbox.checked = false; // 念のためチェックも外す (これ重要)
                     if (partLabel) {
