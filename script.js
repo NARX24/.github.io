@@ -270,8 +270,8 @@ window.copyToClipboard = async function() { // グローバルスコープに公
     try {
         // Clipboard API を使用して自動コピーを試みる
         await navigator.clipboard.writeText(copyText);
-        // コピー成功時のメッセージ表示
-        showMessage("コピーしました！\n手順②. 予約ページへ進んでください。");
+        // ご指定のメッセージに戻す
+        showMessage(`選択内容がコピーされました！\nご予約メニュー【${currentTotalHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`);
         // コピーが成功したら予約ボタンを活性化
         reservationButton.classList.remove("disabled");
 
