@@ -125,6 +125,25 @@ window.keisan = function() { // グローバルスコープに公開
     messageArea.classList.remove('error');
     messageArea.value = ""; // textareaなのでinnerHTMLではなくvalue
 
+    // --- 【追加・修正箇所1: 全てのパーツメニューを初期状態に戻す】 ---
+    // まず全てのパーツメニュー（チェックボックスとラベル）を有効な状態に戻す
+    items.forEach(item => {
+        if (item.type === "part") { // パーツメニューのみ対象
+            const checkbox = document.getElementById(item.id);
+            // HTMLでlabel要素にid="label_パーツID"を付与している前提
+            const label = document.getElementById(`label_${item.id}`); 
+            if (checkbox) {
+                checkbox.disabled = false; // 有効化
+                if (label) {
+                    // label要素に適用された.disabled-itemクラスを削除
+                    label.classList.remove('disabled-item'); 
+                }
+            }
+        }
+    });
+    // --- 【追加・修正箇所1 終わり】 ---
+
+
     // すべてのチェックボックスを反復処理
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
@@ -137,6 +156,7 @@ window.keisan = function() { // グローバルスコープに公開
             if (item.type === "set" && item.parts && item.parts.length > 0) {
                 const finalExpandedNames = getFinalParts(item.id).map(partId => {
                     const subItem = itemMap.get(partId);
+                    // 丸括弧内のテキストを除去
                     return subItem ? subItem.name.replace(/（[^）]*）/g, '') : '';
                 }).filter(name => name !== '');
                 setDetailText = finalExpandedNames.length > 0 ? `＜${finalExpandedNames.join("・")}＞` : '';
@@ -180,6 +200,32 @@ window.keisan = function() { // グローバルスコープに公開
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
         return;
     }
+
+    // --- 【追加・修正箇所2: セットメニューに含まれるパーツを非活性にする】 ---
+    // ここで再度全てのチェックボックスの状態をチェックし、セットに含まれるパーツを非活性化
+    items.forEach(item => {
+        const checkbox = document.getElementById(item.id);
+        // checkboxが存在し、かつ選択されているセットメニューの場合のみ処理
+        if (checkbox && checkbox.checked && item.type === "set") { 
+            const containedParts = getFinalParts(item.id); // セットに含まれる最終的なパーツIDを取得
+
+            containedParts.forEach(partId => {
+                const partCheckbox = document.getElementById(partId);
+                // HTMLでlabel要素にid="label_パーツID"を付与している前提
+                const partLabel = document.getElementById(`label_${partId}`); 
+                // セット自体は非活性にしない、個別パーツのみ対象
+                if (partCheckbox && itemMap.get(partId).type === "part") { 
+                    partCheckbox.disabled = true; // チェックボックスを無効化
+                    partCheckbox.checked = false; // 念のためチェックも外す (これ重要)
+                    if (partLabel) {
+                        partLabel.classList.add('disabled-item'); // スタイルを適用
+                    }
+                }
+            });
+        }
+    });
+    // --- 【追加・修正箇所2 終わり】 ---
+
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
 
@@ -328,7 +374,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
     // 予約ボタンも初期化時に参照しておくと良いでしょう（必要であれば）
     // const reservationButton = document.getElementById("reservationButton");
     // if (reservationButton) {
-    //     // reservationButtonの初期状態をここで設定
-    //     // 例: reservationButton.classList.add("disabled");
+    //    // reservationButtonの初期状態をここで設定
+    //    // 例: reservationButton.classList.add("disabled");
     // }
 });
