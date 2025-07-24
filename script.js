@@ -3,6 +3,8 @@ const items = [
     // ■セットメニュー■
     { id: "set_eyebrow", name: "眉毛セット", time: 40, price: 11000, parts: ["part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullface", name: "全顔セット", time: 65, price: 13200, parts: ["part_nose_under", "part_mouth_under", "part_cheek", "part_face_line", "part_neck"], type: "set" },
+    // 新しく追加する項目
+    { id: "set_fullface_eyebrow", name: "全顔+眉毛脱毛セット", time: 105, price: 22000, parts: ["set_fullface", "part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullbody_all", name: "全身オール（顔、VIO含む）", time: 270, price: 52800, parts: ["set_upperbody", "set_lowerbody"], type: "set" },
     { id: "set_fullbody_noface", name: "顔なし全身", time: 200, price: 41800, parts: ["part_armpit", "part_nape", "part_back_upper", "part_back_lower", "part_chest_nipple", "part_abdomen_navel", "part_elbow_upper", "part_elbow_lower", "part_hand_finger", "part_v_line", "part_i_line", "part_o_line", "part_buttocks", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
     { id: "set_upperbody", name: "上半身セット", time: 170, price: 30800, parts: ["set_fullface", "part_armpit", "part_chest_nipple", "part_abdomen_navel", "part_nape", "part_back_upper", "part_back_lower", "part_elbow_upper", "part_elbow_lower", "part_hand_finger"], type: "set" },
@@ -23,7 +25,7 @@ const items = [
     { id: "part_mouth_under", name: "口下", time: 16, price: 4400, parts: ["part_mouth_under"], type: "part" },
     { id: "part_cheek", name: "頬", time: 16, price: 4400, parts: ["part_cheek"], type: "part" },
     { id: "part_face_line", name: "フェイスライン", time: 16, price: 4400, parts: ["part_face_line"], type: "part" },
-    { id: "part_neck", name: "首", time: 16, price: 4400, parts: ["part_neck"], type: "part" },
+    { id: "part_neck", time: 16, price: 4400, parts: ["part_neck"], type: "part" },
     // 【胴】
     { id: "part_nape", name: "うなじ", time: 16, price: 4400, parts: ["part_nape"], type: "part" },
     { id: "part_armpit", name: "脇", time: 13, price: 4400, parts: ["part_armpit"], type: "part" },
@@ -126,7 +128,6 @@ window.keisan = function() { // グローバルスコープに公開
     messageArea.classList.remove('error');
     messageArea.value = ""; // textareaなのでinnerHTMLではなくvalue
 
-    // --- 【追加・修正箇所1: 全てのパーツメニューを初期状態に戻す】 ---
     // まず全てのパーツメニュー（チェックボックスとラベル）を有効な状態に戻す
     items.forEach(item => {
         if (item.type === "part") { // パーツメニューのみ対象
@@ -142,7 +143,6 @@ window.keisan = function() { // グローバルスコープに公開
             }
         }
     });
-    // --- 【追加・修正箇所1 終わり】 ---
 
 
     // すべてのチェックボックスを反復処理
@@ -191,19 +191,18 @@ window.keisan = function() { // グローバルスコープに公開
         const uniqueDuplicates = [...new Set(duplicatePartNames)];
         showMessage("選択したメニューに重複する部位が含まれています。\n選択を修正してください。\n重複部位: " + uniqueDuplicates.join("、"), true);
 
-        // totalTimeInput.value にもエラーメッセージを表示
-        totalTimeInput.value = "エラー"; // または "再確認" など
+        // totalTimeInput.value を "選択を見直してください" に変更
+        totalTimeInput.value = "選択を見直してください"; 
         totalPriceDisplay.textContent = "料金合計: 0円（税込）"; // 重複がある場合は0円表示
         totalPriceDisplay.classList.remove('guidance-message'); // スタイルを戻す
         copyText = "";
-        currentTotalHours = "エラー"; // コピー時に使う値も更新
+        currentTotalHours = "選択を見直してください"; // コピー時に使う値も更新
 
         copyButton.classList.add("disabled"); // 重複があればコピーボタンも非活性
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
         return;
     }
 
-    // --- 【追加・修正箇所2: セットメニューに含まれるパーツを非活性にする】 ---
     // ここで再度全てのチェックボックスの状態をチェックし、セットに含まれるパーツを非活性化
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
@@ -226,7 +225,6 @@ window.keisan = function() { // グローバルスコープに公開
             });
         }
     });
-    // --- 【追加・修正箇所2 終わり】 ---
 
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
@@ -265,8 +263,8 @@ window.copyToClipboard = async function() { // グローバルスコープに公
     const messageArea = document.getElementById("message-area");
     const reservationButton = document.getElementById("reservationButton");
 
-    // "0.0時間枠" または "エラー" の場合はコピー不可とする
-    if (currentTotalHours === "0.0" || currentTotalHours === "エラー") {
+    // "0.0時間枠" または "選択を見直してください" の場合はコピー不可とする
+    if (currentTotalHours === "0.0" || currentTotalHours === "選択を見直してください") {
         if (!messageArea.classList.contains('error')) { // エラー表示中でない場合のみメッセージ
             showMessage("コピーする内容がありません。まず施術希望部位を選択してください。", true);
         }
