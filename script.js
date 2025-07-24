@@ -108,6 +108,8 @@ function getFinalParts(itemId, currentPath = new Set()) {
     return finalParts;
 }
 
+// ... (前略 - items配列の定義から変更なし) ...
+
 window.keisan = function() { // グローバルスコープに公開
     let totalTime = 0;
     let totalPrice = 0;
@@ -156,16 +158,16 @@ window.keisan = function() { // グローバルスコープに公開
                 const finalExpandedNames = [];
                 item.parts.forEach(partId => {
                     const subItem = itemMap.get(partId);
-                    if (subItem) { // subItemが存在するかチェックを追加
+                    if (subItem) {
                         if (subItem.type === "set") {
                             // ネストされたセットであれば、その中の最終パーツ名も取得
                             getFinalParts(subItem.id).forEach(nestedPartId => {
                                 const nestedSubItem = itemMap.get(nestedPartId);
-                                if (nestedSubItem && nestedSubItem.name) { // nestedSubItemとnameプロパティが存在するかチェックを追加
+                                if (nestedSubItem && nestedSubItem.name) {
                                     finalExpandedNames.push(nestedSubItem.name.replace(/（[^）]*）/g, ''));
                                 }
                             });
-                        } else if (subItem.type === "part" && subItem.name) { // subItemとnameプロパティが存在するかチェックを追加
+                        } else if (subItem.type === "part" && subItem.name) {
                             // 個別パーツであればその名前を直接追加
                             finalExpandedNames.push(subItem.name.replace(/（[^）]*）/g, ''));
                         }
@@ -187,7 +189,7 @@ window.keisan = function() { // グローバルスコープに公開
                 if (selectedDetailedPartIds.has(partId)) {
                     // 重複している場合は、そのパーツの表示名を取得して追加
                     const duplicatedItem = itemMap.get(partId);
-                    if (duplicatedItem && duplicatedItem.name) { // duplicatedItemとnameプロパティが存在するかチェックを追加
+                    if (duplicatedItem && duplicatedItem.name) {
                         duplicatePartNames.push(duplicatedItem.name.replace(/（[^）]*）/g, ''));
                     }
                 } else {
@@ -200,38 +202,33 @@ window.keisan = function() { // グローバルスコープに公開
 
     if (duplicatePartNames.length > 0) {
         const uniqueDuplicates = [...new Set(duplicatePartNames)];
-        // メッセージを「選択を見直してください」に変更
         showMessage("選択を見直してください\n重複する部位が含まれています。\n重複部位: " + uniqueDuplicates.join("、"), true);
 
-        // totalTimeInput.value を「選択を見直してください」に変更
         totalTimeInput.value = "選択を見直してください"; 
-        totalPriceDisplay.textContent = "料金合計: 0円（税込）"; // 重複がある場合は0円表示
-        totalPriceDisplay.classList.remove('guidance-message'); // スタイルを戻す
+        totalPriceDisplay.textContent = "料金合計: 0円（税込）"; 
+        totalPriceDisplay.classList.remove('guidance-message'); 
         copyText = "";
-        currentTotalHours = "選択を見直してください"; // コピー時に使う値も更新
+        currentTotalHours = "選択を見直してください"; 
 
-        copyButton.classList.add("disabled"); // 重複があればコピーボタンも非活性
-        reservationButton.classList.add("disabled"); // 予約ボタンも非活性
+        copyButton.classList.add("disabled"); 
+        reservationButton.classList.add("disabled"); 
         return;
     }
 
     // ここで再度全てのチェックボックスの状態をチェックし、セットに含まれるパーツを非活性化
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
-        // checkboxが存在し、かつ選択されているセットメニューの場合のみ処理
         if (checkbox && checkbox.checked && item.type === "set") { 
-            const containedParts = getFinalParts(item.id); // セットに含まれる最終的なパーツIDを取得
+            const containedParts = getFinalParts(item.id); 
 
             containedParts.forEach(partId => {
                 const partCheckbox = document.getElementById(partId);
-                // HTMLでlabel要素にid="label_パーツID"を付与している前提
                 const partLabel = document.getElementById(`label_${partId}`); 
-                // セット自体は非活性にしない、個別パーツのみ対象
-                if (partCheckbox && itemMap.get(partId) && itemMap.get(partId).type === "part") { // itemMap.get(partId)のnull/undefinedチェックを追加
-                    partCheckbox.disabled = true; // チェックボックスを無効化
-                    partCheckbox.checked = false; // 念のためチェックも外す (これ重要)
+                if (partCheckbox && itemMap.get(partId) && itemMap.get(partId).type === "part") { 
+                    partCheckbox.disabled = true; 
+                    partCheckbox.checked = false; 
                     if (partLabel) {
-                        partLabel.classList.add('disabled-item'); // スタイルを適用
+                        partLabel.classList.add('disabled-item'); 
                     }
                 }
             });
@@ -248,28 +245,30 @@ window.keisan = function() { // グローバルスコープに公開
         currentTotalHours = hours.toFixed(1); 
     }
 
-    // totalTimeInput.value の表示形式を変更: "n時間枠"
-    totalTimeInput.value = `${currentTotalHours}時間枠`;
-
+    // ★★★ここから変更★★★
     if (totalPrice === 0) {
         totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
-        totalPriceDisplay.classList.add('guidance-message'); // 新しいスタイルを適用
-        copyButton.classList.add("disabled"); // 何も選択されていなければコピーボタンも非活性
-        reservationButton.classList.add("disabled"); // 予約ボタンも非活性
+        totalPriceDisplay.classList.add('guidance-message');
+        copyButton.classList.add("disabled");
+        reservationButton.classList.add("disabled");
         
-        // 合計時間が0の場合も "0.0時間枠" と表示
-        totalTimeInput.value = "0.0時間枠";
+        // 合計時間が0の場合に "希望部位を選択してください" と表示
+        totalTimeInput.value = "希望部位を選択してください"; // ★変更点★
+        currentTotalHours = "0.0"; // copyToClipboardの判定のために値を維持
 
     } else {
         totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-        totalPriceDisplay.classList.remove('guidance-message'); // スタイルを戻す
-        copyButton.classList.remove("disabled"); // 何か選択されていればコピーボタンを活性化
-        // 予約ボタンはコピー後活性化されるのでここでは処理しない
+        totalPriceDisplay.classList.remove('guidance-message');
+        copyButton.classList.remove("disabled");
+        totalTimeInput.value = `${currentTotalHours}時間枠`; // ★変更点★ 
     }
+    // ★★★ここまで変更★★★
 
     // コピーするテキストはselectedPartsForCopyを使用
     copyText = `選択した部位:\n${selectedPartsForCopy.join("\n")}\n---\n合計時間: ${currentTotalHours}時間\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 }
+
+// ... (後略 - copyToClipboard関数以下は変更なし) ...
 
 window.copyToClipboard = async function() { // グローバルスコープに公開
     const messageArea = document.getElementById("message-area");
