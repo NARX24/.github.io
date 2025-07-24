@@ -20,8 +20,6 @@ const items = [
 
     // ■パーツメニュー■
     // 【顔】
-    // partタイプのitemsは、partsプロパティを持たない（あるいは空配列）とするのが望ましい
-    // getFinalPartsのロジックを堅牢にするため、このまま維持します
     { id: "part_nose_under", name: "鼻下", time: 16, price: 4400, type: "part" }, 
     { id: "part_mouth_under", name: "口下", time: 16, price: 4400, type: "part" },
     { id: "part_cheek", name: "頬", time: 16, price: 4400, type: "part" },
@@ -79,7 +77,6 @@ items.forEach(item => {
 function getFinalParts(itemId, currentPath = new Set()) {
     // 無限ループ防止: 現在のパスにitemIdが含まれていれば、空の配列を返す（循環参照）
     if (currentPath.has(itemId)) {
-        // console.warn(`Circular reference detected for item: ${itemId}. Returning empty array.`); // デバッグ用
         return [];
     }
 
@@ -90,7 +87,7 @@ function getFinalParts(itemId, currentPath = new Set()) {
     const item = itemMap.get(itemId);
 
     if (!item) {
-        // console.warn(`Item with ID "${itemId}" not found in itemMap.`); // デバッグ用
+        // アイテムが見つからない場合、そのIDを最終パーツリストには追加しないが、エラーは出さない
         currentPath.delete(itemId); // パスから削除
         return finalParts;
     }
@@ -155,22 +152,20 @@ window.keisan = function() { // グローバルスコープに公開
 
             // 画面表示用のテキストを生成（詳細情報を含む）
             let setDetailText = '';
-            // set_fullface_eyebrow の parts に 'set_fullface' が含まれているため、
-            // その 'set_fullface' も展開して表示名を取得できるようにする
             if (item.type === "set" && item.parts && item.parts.length > 0) {
                 const finalExpandedNames = [];
                 item.parts.forEach(partId => {
                     const subItem = itemMap.get(partId);
-                    if (subItem) {
+                    if (subItem) { // subItemが存在するかチェックを追加
                         if (subItem.type === "set") {
                             // ネストされたセットであれば、その中の最終パーツ名も取得
                             getFinalParts(subItem.id).forEach(nestedPartId => {
                                 const nestedSubItem = itemMap.get(nestedPartId);
-                                if (nestedSubItem) {
+                                if (nestedSubItem && nestedSubItem.name) { // nestedSubItemとnameプロパティが存在するかチェックを追加
                                     finalExpandedNames.push(nestedSubItem.name.replace(/（[^）]*）/g, ''));
                                 }
                             });
-                        } else if (subItem.type === "part") {
+                        } else if (subItem.type === "part" && subItem.name) { // subItemとnameプロパティが存在するかチェックを追加
                             // 個別パーツであればその名前を直接追加
                             finalExpandedNames.push(subItem.name.replace(/（[^）]*）/g, ''));
                         }
@@ -186,14 +181,13 @@ window.keisan = function() { // グローバルスコープに公開
 
             // 選択されたアイテムの最終的な個別パーツIDリストを取得
             const partsToCheck = getFinalParts(item.id);
-            // console.log(`Checking item: ${item.id}, Parts:`, partsToCheck); // デバッグ用
 
             partsToCheck.forEach(partId => {
                 // そのパーツIDがすでに選択済みの最終パーツリストにあるかチェック
                 if (selectedDetailedPartIds.has(partId)) {
                     // 重複している場合は、そのパーツの表示名を取得して追加
                     const duplicatedItem = itemMap.get(partId);
-                    if (duplicatedItem) {
+                    if (duplicatedItem && duplicatedItem.name) { // duplicatedItemとnameプロパティが存在するかチェックを追加
                         duplicatePartNames.push(duplicatedItem.name.replace(/（[^）]*）/g, ''));
                     }
                 } else {
@@ -233,10 +227,7 @@ window.keisan = function() { // グローバルスコープに公開
                 // HTMLでlabel要素にid="label_パーツID"を付与している前提
                 const partLabel = document.getElementById(`label_${partId}`); 
                 // セット自体は非活性にしない、個別パーツのみ対象
-                if (partCheckbox && itemMap.get(partId).type === "part") { 
-                    // 選択されているセットに含まれるパーツはdisabledにするが、
-                    // そのパーツ自体が手動でチェックされていた場合は、
-                    // totalTimeやtotalPriceからその値を引く必要がある。（現状はsetが優先されるので問題なし）
+                if (partCheckbox && itemMap.get(partId) && itemMap.get(partId).type === "part") { // itemMap.get(partId)のnull/undefinedチェックを追加
                     partCheckbox.disabled = true; // チェックボックスを無効化
                     partCheckbox.checked = false; // 念のためチェックも外す (これ重要)
                     if (partLabel) {
