@@ -302,3 +302,6 @@ body {
 
  .reservation-button:not(.disabled) { 
      opacity: 1; 
+     pointer-events: auto; 
+     cursor: pointer; 
+ }
