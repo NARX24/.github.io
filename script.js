@@ -58,7 +58,7 @@ const items = [
 ];
 
 let copyText = ""; // コピーするテキストを格納する変数
-let currentTotalHours = "0"; // 合計時間を格納する変数（「n時間枠」形式で保持）
+let currentTotalHours = "0"; // 合計時間を格納する変数
 
 // 全てのアイテムをIDで参照できるようにするマップ
 const itemMap = new Map();
@@ -120,7 +120,7 @@ window.keisan = function() { // グローバルスコープに公開
     const totalPriceDisplay = document.getElementById("totalPrice");
     const copyButton = document.getElementById("copyButton");
     const reservationButton = document.getElementById("reservationButton");
-    const totalTimeInput = document.getElementById("totalTime"); // input要素を取得
+    const totalTimeInput = document.getElementById("totalTime"); // totalTimeのinput要素を取得
 
     messageArea.style.display = "none";
     messageArea.classList.remove('error');
@@ -191,12 +191,12 @@ window.keisan = function() { // グローバルスコープに公開
         const uniqueDuplicates = [...new Set(duplicatePartNames)];
         showMessage("選択したメニューに重複する部位が含まれています。\n選択を修正してください。\n重複部位: " + uniqueDuplicates.join("、"), true);
 
-        // 修正: totalTimeInput の表示を "選択を見直してください" に変更
-        totalTimeInput.value = "選択を見直してください"; 
+        // totalTimeInput.value にもエラーメッセージを表示
+        totalTimeInput.value = "エラー"; // または "再確認" など
         totalPriceDisplay.textContent = "料金合計: 0円（税込）"; // 重複がある場合は0円表示
         totalPriceDisplay.classList.remove('guidance-message'); // スタイルを戻す
         copyText = "";
-        currentTotalHours = "選択を見直してください"; // コピー用変数も更新
+        currentTotalHours = "エラー"; // コピー時に使う値も更新
 
         copyButton.classList.add("disabled"); // 重複があればコピーボタンも非活性
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
@@ -232,22 +232,24 @@ window.keisan = function() { // グローバルスコープに公開
     const hours = Math.ceil(totalTime / 30) * 0.5;
 
     // 小数点以下が.0の場合に整数にする
-    let displayHours;
     if (hours % 1 === 0) { 
-        displayHours = hours.toString(); 
+        currentTotalHours = hours.toString(); 
     } else {
-        displayHours = hours.toFixed(1); 
+        currentTotalHours = hours.toFixed(1); 
     }
-    
-    // 修正: totalTimeInput の表示形式を「n時間枠」にする
-    totalTimeInput.value = `${displayHours}時間枠`;
-    currentTotalHours = `${displayHours}時間枠`; // コピー用変数も更新
+
+    // totalTimeInput.value の表示形式を変更: "n時間枠"
+    totalTimeInput.value = `${currentTotalHours}時間枠`;
 
     if (totalPrice === 0) {
         totalPriceDisplay.textContent = "手順①.　施術希望部位を選択してください。";
         totalPriceDisplay.classList.add('guidance-message'); // 新しいスタイルを適用
         copyButton.classList.add("disabled"); // 何も選択されていなければコピーボタンも非活性
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
+        
+        // 合計時間が0の場合も "0.0時間枠" と表示
+        totalTimeInput.value = "0.0時間枠";
+
     } else {
         totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
         totalPriceDisplay.classList.remove('guidance-message'); // スタイルを戻す
@@ -256,17 +258,16 @@ window.keisan = function() { // グローバルスコープに公開
     }
 
     // コピーするテキストはselectedPartsForCopyを使用
-    copyText = `選択した部位:\n${selectedPartsForCopy.join("\n")}\n---\n合計時間: ${currentTotalHours}\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+    copyText = `選択した部位:\n${selectedPartsForCopy.join("\n")}\n---\n合計時間: ${currentTotalHours}時間\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 }
 
 window.copyToClipboard = async function() { // グローバルスコープに公開
     const messageArea = document.getElementById("message-area");
     const reservationButton = document.getElementById("reservationButton");
 
-    // currentTotalHours が "0時間枠" もしくは "選択を見直してください" の場合はコピー不可
-    if (currentTotalHours === "0時間枠" || currentTotalHours === "選択を見直してください") {
-        // 重複エラー状態でない、または初期状態の場合にのみメッセージを表示
-        if (!messageArea.classList.contains('error')) {
+    // "0.0時間枠" または "エラー" の場合はコピー不可とする
+    if (currentTotalHours === "0.0" || currentTotalHours === "エラー") {
+        if (!messageArea.classList.contains('error')) { // エラー表示中でない場合のみメッセージ
             showMessage("コピーする内容がありません。まず施術希望部位を選択してください。", true);
         }
         reservationButton.classList.add("disabled"); // コピーできない場合は予約ボタンも非活性のまま
@@ -277,7 +278,7 @@ window.copyToClipboard = async function() { // グローバルスコープに公
         // Clipboard API を使用して自動コピーを試みる
         await navigator.clipboard.writeText(copyText);
         // ご指定のメッセージに戻す
-        showMessage(`選択内容がコピーされました！\nご予約メニュー【${currentTotalHours}】を選択後、コピー内容を備考欄に貼り付けて下さい。`);
+        showMessage(`選択内容がコピーされました！\nご予約メニュー【${currentTotalHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`);
         // コピーが成功したら予約ボタンを活性化
         reservationButton.classList.remove("disabled");
 
