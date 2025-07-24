@@ -21,7 +21,7 @@ const items = [
     // 【顔】
     { id: "part_nose_under", name: "鼻下", time: 16, price: 4400, parts: ["part_nose_under"], type: "part" },
     { id: "part_mouth_under", name: "口下", time: 16, price: 4400, parts: ["part_mouth_under"], type: "part" },
-    { id: "part_cheek", name: "頬", time: 16, price: 4400, parts: ["part_cheek"], type: "part" },
+    { id: "part_cheek", time: 16, price: 4400, parts: ["part_cheek"], type: "part" },
     { id: "part_face_line", name: "フェイスライン", time: 16, price: 4400, parts: ["part_face_line"], type: "part" },
     { id: "part_neck", name: "首", time: 16, price: 4400, parts: ["part_neck"], type: "part" },
     // 【胴】
@@ -115,6 +115,7 @@ window.keisan = function() { // グローバルスコープに公開
     const selectedPartsForCopy = []; // コピー用の選択項目リスト (詳細なし)
     const selectedDetailedPartIds = new Set(); // 選択された各**最終的な個別パーツのID**を追跡するためのSet
     const duplicatePartNames = []; // 重複する最終的なパーツの名前を格納する配列
+    const selectedSetIds = new Set(); // 選択されているセットメニューのIDを格納するSet
 
     const messageArea = document.getElementById("message-area");
     const totalPriceDisplay = document.getElementById("totalPrice");
@@ -148,6 +149,11 @@ window.keisan = function() { // グローバルスコープに公開
             totalTime += item.time;
             totalPrice += item.price;
 
+            // 選択されているセットメニューのIDを記録
+            if (item.type === "set") {
+                selectedSetIds.add(item.id);
+            }
+
             // 画面表示用のテキストを生成（詳細情報を含む）
             let setDetailText = '';
             if (item.type === "set" && item.parts && item.parts.length > 0) {
@@ -162,7 +168,6 @@ window.keisan = function() { // グローバルスコープに公開
 
             // コピー用のテキストを生成（詳細情報を含まない）
             selectedPartsForCopy.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円`);
-
 
             // 選択されたアイテムの最終的な個別パーツIDリストを取得し、重複をチェック
             const partsToCheck = getFinalParts(item.id);
@@ -183,6 +188,7 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
+    // 重複エラーが発生した場合
     if (duplicatePartNames.length > 0) {
         const uniqueDuplicates = [...new Set(duplicatePartNames)];
         showMessage("選択したメニューに重複する部位が含まれています。\n選択を修正してください。\n重複部位: " + uniqueDuplicates.join("、"), true);
@@ -195,30 +201,76 @@ window.keisan = function() { // グローバルスコープに公開
 
         copyButton.classList.add("disabled"); // 重複があればコピーボタンも非活性
         reservationButton.classList.add("disabled"); // 予約ボタンも非活性
-        return;
+        return; // ここで処理を終了
     }
 
-    // --- 【修正箇所2: セットメニューに含まれるアイテム（パーツ/セット問わず）を非活性にするロジック】 ---
-    // 重複がない場合のみ、セットに含まれる他のアイテム（パーツまたはセット）を非活性化する
+    // --- 【修正箇所2: 選択されたセットメニューに含まれる全てのアイテム（パーツ/セット）を非活性にするロジック】 ---
+    // 重複がない場合のみ、非活性化処理を行う
+    // 選択されている全てのセットメニューが最終的に含む全ての個別パーツを洗い出す
+    const allContainedPartsBySelectedSets = new Set();
+    selectedSetIds.forEach(setId => {
+        const containedFinalParts = getFinalParts(setId);
+        containedFinalParts.forEach(partId => allContainedPartsBySelectedSets.add(partId));
+    });
+
+    // 全てのアイテムを再走査して、非活性化すべきものを判定
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
-        // checkboxが存在し、かつ選択されているセットメニューの場合のみ処理
-        if (checkbox && checkbox.checked && item.type === "set") { 
-            const containedItems = item.parts; // 直接含まれる子要素のIDリストを取得（getFinalPartsではない）
+        const label = document.getElementById(`label_${item.id}`);
 
-            containedItems.forEach(containedId => {
-                const containedCheckbox = document.getElementById(containedId);
-                const containedLabel = document.getElementById(`label_${containedId}`); 
-                
-                // 選択されたセットメニューに直接含まれる子要素（パーツまたは他のセット）を無効化
-                if (containedCheckbox) { 
-                    containedCheckbox.disabled = true; // チェックボックスを無効化
-                    containedCheckbox.checked = false; // 念のためチェックも外す (これ重要)
-                    if (containedLabel) {
-                        containedLabel.classList.add('disabled-item'); // スタイルを適用
+        if (!checkbox || !label) return; // 要素が存在しない場合はスキップ
+
+        // 既に選択されている場合は、非活性化しない（選択状態を維持するため）
+        if (checkbox.checked) {
+            checkbox.disabled = false;
+            label.classList.remove('disabled-item');
+            return;
+        }
+
+        // ここから非活性化のロジック
+        let shouldDisable = false;
+
+        if (item.type === "part") {
+            // 個別パーツが、選択されているセットによってカバーされている場合
+            if (allContainedPartsBySelectedSets.has(item.id)) {
+                shouldDisable = true;
+            }
+        } else if (item.type === "set") {
+            // 他のセットメニューが、選択されているセットによって完全にカバーされているか、
+            // または、そのセット自体が選択されているセットの一部である場合
+
+            const currentSetFinalParts = new Set(getFinalParts(item.id));
+            let isCoveredBySelectedSet = true;
+
+            // このセットに含まれる全ての最終パーツが、選択されているセットのいずれかによってカバーされているかチェック
+            // ただし、このセット自体がselectedSetIdsに含まれる場合は、isCoveredBySelectedSetは常にtrueとなる
+            if (!selectedSetIds.has(item.id)) { // 自身が選択されているセットでなければ
+                if (currentSetFinalParts.size > 0) { // 空のセットでない場合のみチェック
+                    for (const partId of currentSetFinalParts) {
+                        if (!allContainedPartsBySelectedSets.has(partId)) {
+                            isCoveredBySelectedSet = false;
+                            break;
+                        }
                     }
+                } else { // 空のセットはカバーされているとみなさない
+                    isCoveredBySelectedSet = false;
                 }
-            });
+            } else { // 自身が選択されているセットであれば、当然カバーされている
+                isCoveredBySelectedSet = false; // 選択中のセット自身はここでdisabledにしない
+            }
+
+            if (isCoveredBySelectedSet) {
+                shouldDisable = true;
+            }
+        }
+
+        if (shouldDisable) {
+            checkbox.disabled = true;
+            checkbox.checked = false; // 念のためチェックを外す
+            label.classList.add('disabled-item');
+        } else {
+            checkbox.disabled = false;
+            label.classList.remove('disabled-item');
         }
     });
     // --- 【修正箇所2 終わり】 ---
