@@ -125,8 +125,8 @@ window.keisan = function() { // グローバルスコープに公開
     messageArea.classList.remove('error');
     messageArea.value = ""; // textareaなのでinnerHTMLではなくvalue
 
-    // --- 【修正箇所: 全てのアイテムを初期状態に戻す（統合）】 ---
-    // まず全てのメニュー（セット、パーツ問わず）を有効な状態に戻す
+    // --- 【修正箇所1: 全てのメニューを初期状態に戻す（統合）】 ---
+    // まず全てのメニュー（セット、パーツ問わず）のチェックボックスとラベルを有効な状態に戻す
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         const label = document.getElementById(`label_${item.id}`); // label_ID形式で取得
@@ -138,10 +138,10 @@ window.keisan = function() { // グローバルスコープに公開
             }
         }
     });
-    // --- 【修正箇所 終わり】 ---
+    // --- 【修正箇所1 終わり】 ---
 
 
-    // すべてのチェックボックスを反復処理
+    // 選択された全てのチェックボックスを反復処理し、合計時間・料金、および重複パーツを検出
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         if (checkbox && checkbox.checked) {
@@ -164,7 +164,7 @@ window.keisan = function() { // グローバルスコープに公開
             selectedPartsForCopy.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円`);
 
 
-            // 選択されたアイテムの最終的な個別パーツIDリストを取得
+            // 選択されたアイテムの最終的な個別パーツIDリストを取得し、重複をチェック
             const partsToCheck = getFinalParts(item.id);
 
             partsToCheck.forEach(partId => {
@@ -198,30 +198,30 @@ window.keisan = function() { // グローバルスコープに公開
         return;
     }
 
-    // --- 【修正箇所: セットメニューに含まれるパーツを非活性にするロジック】 ---
-    // 重複がない場合のみ、セットに含まれるパーツを非活性化する
+    // --- 【修正箇所2: セットメニューに含まれるアイテム（パーツ/セット問わず）を非活性にするロジック】 ---
+    // 重複がない場合のみ、セットに含まれる他のアイテム（パーツまたはセット）を非活性化する
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         // checkboxが存在し、かつ選択されているセットメニューの場合のみ処理
         if (checkbox && checkbox.checked && item.type === "set") { 
-            const containedParts = getFinalParts(item.id); // セットに含まれる最終的なパーツIDを取得
+            const containedItems = item.parts; // 直接含まれる子要素のIDリストを取得（getFinalPartsではない）
 
-            containedParts.forEach(partId => {
-                const partCheckbox = document.getElementById(partId);
-                const partLabel = document.getElementById(`label_${partId}`); 
+            containedItems.forEach(containedId => {
+                const containedCheckbox = document.getElementById(containedId);
+                const containedLabel = document.getElementById(`label_${containedId}`); 
                 
-                // セットに含まれる個別パーツを無効化
-                if (partCheckbox && itemMap.get(partId).type === "part") { 
-                    partCheckbox.disabled = true; // チェックボックスを無効化
-                    partCheckbox.checked = false; // 念のためチェックも外す (これ重要)
-                    if (partLabel) {
-                        partLabel.classList.add('disabled-item'); // スタイルを適用
+                // 選択されたセットメニューに直接含まれる子要素（パーツまたは他のセット）を無効化
+                if (containedCheckbox) { 
+                    containedCheckbox.disabled = true; // チェックボックスを無効化
+                    containedCheckbox.checked = false; // 念のためチェックも外す (これ重要)
+                    if (containedLabel) {
+                        containedLabel.classList.add('disabled-item'); // スタイルを適用
                     }
                 }
             });
         }
     });
-    // --- 【修正箇所 終わり】 ---
+    // --- 【修正箇所2 終わり】 ---
 
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
