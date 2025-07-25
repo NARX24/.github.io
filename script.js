@@ -31,14 +31,14 @@ const items = [
     { id: "part_chest_nipple", name: "胸（乳輪周り含む）", time: 16, price: 6600, type: "part" },
     { id: "part_abdomen_navel", name: "腹部（ヘソ下含む）", time: 16, price: 6600, type: "part" },
     { id: "part_back_upper", name: "背中上", time: 16, price: 6600, type: "part" },
-    { id: "part_back_lower", time: 16, price: 6600, type: "part" },
+    { id: "part_back_lower", name: "背中下", time: 16, price: 6600, type: "part" },
     { id: "part_buttocks", name: "臀部（おしり）", time: 16, price: 6600, type: "part" },
     // 【腕・足】
     { id: "part_elbow_upper", name: "肘上", time: 16, price: 6600, type: "part" },
     { id: "part_elbow_lower", name: "肘下", time: 18, price: 6600, type: "part" },
     { id: "part_hand_finger", name: "手の甲+指", time: 12, price: 4400, type: "part" },
     { id: "part_knee_upper", name: "膝上", time: 35, price: 8800, type: "part" },
-    { id: "part_knee_lower", time: 35, price: 8800, type: "part" },
+    { id: "part_knee_lower", name: "膝下", time: 35, price: 8800, type: "part" },
     { id: "part_foot_toe", name: "足の甲＋指", time: 12, price: 4400, type: "part" },
     // 【VIO】
     { id: "part_v_line", name: "Vライン", time: 16, price: 7700, type: "part" },
@@ -47,7 +47,7 @@ const items = [
     // 【特殊部位】
     { id: "part_forehead", name: "おでこ", time: 13, price: 4400, type: "part" },
     { id: "part_eyebrow_upper", name: "眉上", time: 13, price: 4400, type: "part" },
-    { id: "part_eyebrow_lower", name: "眉下", time: 13, price: 6600, type: "part" }, // ★変更点: 価格を2200から6600に変更★
+    { id: "part_eyebrow_lower", name: "眉下", time: 13, price: 6600, type: "part" }, // ★★★ここを修正しました！★★★
     { id: "part_eyebrow_middle", name: "眉中", time: 13, price: 2200, type: "part" },
     { id: "part_small_nose", name: "小鼻", time: 13, price: 4400, type: "part" },
     { id: "part_nose_hair", name: "鼻毛", time: 20, price: 4400, type: "part" },
@@ -57,12 +57,11 @@ const items = [
     { id: "part_navel_under", name: "ヘソ下", time: 10, price: 4400, type: "part" },
     { id: "part_design_fee", name: "デザイン料", time: 0, price: 0, type: "part" },
 
-    // ■その他メニュー■ ★ここから追加★
+    // ■その他メニュー■
     { id: "other_lala_peel", name: "ララピール", time: 90, price: 12100, type: "other" },
     { id: "other_face_correction", name: "小顔矯正術", time: 90, price: 22000, type: "other" },
     { id: "other_derma_scalp", name: "ダーマインジェクション（スカルプケア）", time: 50, price: 22000, type: "other" },
     { id: "other_derma_skin", name: "ダーマインジェクション（肌育ケア）", time: 50, price: 22000, type: "other" }
-    // ★ここまで追加★
 ];
 
 let copyText = ""; // コピーするテキストを格納する変数
@@ -131,7 +130,7 @@ window.keisan = function() { // グローバルスコープに公開
     // まず全てのパーツメニュー（チェックボックスとラベル）を有効な状態に戻す
     // "other"タイプのメニューもdisabledを解除する対象に含める
     items.forEach(item => {
-        if (item.type === "part" || item.type === "other") { // ★変更点: otherタイプも対象に含める★
+        if (item.type === "part" || item.type === "other") {
             const checkbox = document.getElementById(item.id);
             const label = document.getElementById(`label_${item.id}`); 
             if (checkbox) {
@@ -181,7 +180,7 @@ window.keisan = function() { // グローバルスコープに公開
 
             // 選択されたアイテムの最終的な個別パーツIDリストを取得
             // "other"タイプのメニューは重複チェックの対象外
-            if (item.type !== "other") { // ★変更点: otherタイプは重複チェックから除外★
+            if (item.type !== "other") {
                 const partsToCheck = getFinalParts(item.id);
 
                 partsToCheck.forEach(partId => {
@@ -218,7 +217,7 @@ window.keisan = function() { // グローバルスコープに公開
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         // checkboxが存在し、かつ選択されているセットメニューの場合のみ処理
-        if (checkbox && checkbox.checked && item.type === "set") { // ★変更点: otherタイプは対象外なのでtype==="set"を指定★
+        if (checkbox && checkbox.checked && item.type === "set") {
             const containedParts = getFinalParts(item.id); 
 
             containedParts.forEach(partId => {
@@ -253,9 +252,8 @@ window.keisan = function() { // グローバルスコープに公開
         copyButton.classList.add("disabled");
         reservationButton.classList.add("disabled");
         
-        // 合計時間が0の場合に "希望部位を選択してください" と表示
         totalTimeInput.value = "希望部位を選択してください"; 
-        currentTotalHours = "0.0"; // copyToClipboardの判定のために値を維持
+        currentTotalHours = "0.0"; 
 
     } else {
         totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
@@ -264,7 +262,6 @@ window.keisan = function() { // グローバルスコープに公開
         totalTimeInput.value = `${currentTotalHours}時間枠`; 
     }
 
-    // コピーするテキストはselectedPartsForCopyを使用
     copyText = `選択した部位:\n${selectedPartsForCopy.join("\n")}\n---\n合計時間: ${currentTotalHours}時間\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 }
 
@@ -272,9 +269,7 @@ window.copyToClipboard = async function() { // グローバルスコープに公
     const messageArea = document.getElementById("message-area");
     const reservationButton = document.getElementById("reservationButton");
 
-    // "0.0時間枠" または "選択を見直してください" の場合はコピー不可とする
-    // totalTimeInput.value が "希望部位を選択してください" の場合もコピー不可とする
-    if (currentTotalHours === "0.0" || currentTotalHours === "選択を見直してください") { // currentTotalHoursは0.0を維持しているのでこのままでOK
+    if (currentTotalHours === "0.0" || currentTotalHours === "選択を見直してください") {
         if (!messageArea.classList.contains('error')) { 
             showMessage("コピーする内容がありません。まず施術希望部位を選択してください。", true);
         }
