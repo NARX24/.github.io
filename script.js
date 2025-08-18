@@ -122,15 +122,15 @@ window.keisan = function() { // グローバルスコープに公開
     messageArea.classList.remove('error');
     messageArea.value = "";
     
-    // 計算ロジックの前に、**全ての**チェックボックスを有効化する
+    // 計算ロジックの前に、**全ての**チェックボックスとラベルを有効化する
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
+        const label = document.getElementById(`label_${item.id}`);
         if (checkbox) {
             checkbox.disabled = false;
-            const label = document.getElementById(`label_${item.id}`);
-            if (label) {
-                label.classList.remove('disabled-item');
-            }
+        }
+        if (label) {
+            label.classList.remove('disabled-item');
         }
     });
 
@@ -142,11 +142,9 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
-    // ユーザーがチェックしたメニューを分類
     const userCheckedSetIds = new Set(checkedItems.filter(item => item.type === "set").map(item => item.id));
     const userCheckedPartIds = new Set(checkedItems.filter(item => item.type === "part").map(item => item.id));
 
-    // 自動選択の候補となるセットを洗い出す
     let setsToAutoSelect = new Set();
     const sortedSets = items.filter(item => item.type === "set").sort((a, b) => getFinalParts(b).length - getFinalParts(a).length);
 
@@ -169,18 +167,17 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
     
-    // ユーザーが手動で選択したセットと自動選択されたセットを統合し、より大きなセットを優先する
     let finalSelectedSets = new Set([...userCheckedSetIds, ...setsToAutoSelect]);
     
     const allSetIds = [...finalSelectedSets];
     const setsToRemove = new Set();
     
-    // より大きなセットに含まれる小さなセットを削除
     allSetIds.forEach(setId1 => {
+        const partsOfSet1 = getFinalParts(setId1);
         allSetIds.forEach(setId2 => {
             if (setId1 !== setId2) {
-                const item1 = itemMap.get(setId1);
-                if (item1 && item1.parts && item1.parts.includes(setId2)) {
+                const partsOfSet2 = getFinalParts(setId2);
+                if (partsOfSet1.length > partsOfSet2.length && partsOfSet2.every(partId => partsOfSet1.includes(partId))) {
                     setsToRemove.add(setId2);
                 }
             }
@@ -189,7 +186,6 @@ window.keisan = function() { // グローバルスコープに公開
     setsToRemove.forEach(id => finalSelectedSets.delete(id));
 
     const finalSelectedParts = new Set();
-    // 最終的に選ばれたセットに含まれない、チェック済みのパーツとその他メニューを抽出
     checkedItems.forEach(item => {
         if (item.type === "part") {
             let isContainedInSet = false;
@@ -207,9 +203,10 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
-    // チェックボックスの状態を更新
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
+        const label = document.getElementById(`label_${item.id}`);
+
         if (checkbox) {
             const isFinalSelection = finalSelectedSets.has(item.id) || finalSelectedParts.has(item.id);
             
@@ -221,9 +218,9 @@ window.keisan = function() { // グローバルスコープに公開
                         const subItemLabel = document.getElementById(`label_${subItemId}`);
                         if (subItemCheckbox) {
                             subItemCheckbox.disabled = true;
-                            if (subItemLabel) {
-                                subItemLabel.classList.add('disabled-item');
-                            }
+                        }
+                        if (subItemLabel) {
+                            subItemLabel.classList.add('disabled-item');
                         }
                     });
                 }
@@ -233,7 +230,6 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
     
-    // 料金と時間の再計算
     const finalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
     const uniqueFinalSelectedIds = [...new Set(finalSelectedIds)];
 
