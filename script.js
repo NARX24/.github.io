@@ -297,6 +297,7 @@ window.keisan = function() { // グローバルスコープに公開
         totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
         totalPriceDisplay.classList.remove('guidance-message');
         copyButton.classList.remove("disabled");
+        reservationButton.classList.remove("disabled"); // 予約ボタンを有効化
         totalTimeInput.value = `${currentTotalHours}時間枠`;
     }
 
