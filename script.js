@@ -121,8 +121,8 @@ window.keisan = function() { // グローバルスコープに公開
     messageArea.style.display = "none";
     messageArea.classList.remove('error');
     messageArea.value = "";
-
-    // 全てのチェックボックスを有効な状態に戻す
+    
+    // 計算ロジックの前に、**全ての**チェックボックスを有効化する
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         if (checkbox) {
@@ -143,7 +143,6 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
-    // 選択されたチェックボックスから、最終的に選択すべきセットメニューを特定
     const finalSelectedSets = new Set();
     const finalSelectedParts = new Set();
     
@@ -162,13 +161,11 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
     
-    // 複数のセットが組み合わさって、より大きなセットになる場合をチェック
     let combinedSetsAdded;
     do {
         combinedSetsAdded = false;
         items.forEach(item => {
             if (item.type === "set" && item.parts) {
-                // 既に最終選択セットに含まれている場合はスキップ
                 if (finalSelectedSets.has(item.id)) return;
                 
                 const partsForThisSet = item.parts;
@@ -193,7 +190,6 @@ window.keisan = function() { // グローバルスコープに公開
         });
     } while (combinedSetsAdded);
 
-    // 最終的に選ばれたセットに含まれない、チェック済みのパーツとその他メニューを抽出
     checkedItems.forEach(item => {
         if (item.type === "part") {
             let isContainedInSet = false;
@@ -211,13 +207,11 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
-    // チェックボックスの状態を更新
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         if (checkbox) {
             if (finalSelectedSets.has(item.id) || finalSelectedParts.has(item.id)) {
                 checkbox.checked = true;
-                // セットに含まれるパーツは非活性化
                 if (item.type === "set" && item.parts) {
                     getFinalParts(item.id).forEach(partId => {
                         const partCheckbox = document.getElementById(partId);
@@ -237,7 +231,6 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
-    // 料金と時間の計算
     const finalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
     finalSelectedIds.forEach(id => {
         const item = itemMap.get(id);
@@ -248,7 +241,6 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
     
-    // 表示用のテキストを生成
     const selectedPartsForCopy = [];
     selectedItems.forEach(item => {
         let setDetailText = '';
