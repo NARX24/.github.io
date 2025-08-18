@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>料金計算システム</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell", "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+            background-color: #f0f2f5;
+            color: #333;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #1a1a1a;
+            text-align: center;
+            margin-bottom: 20px;
+            font-size: 28px;
+            font-weight: 700;
+        }
+        h2 {
+            font-size: 20px;
+            color: #333;
+            border-bottom: 2px solid #ddd;
+            padding-bottom: 5px;
+            margin-top: 25px;
+            margin-bottom: 15px;
+        }
+        .menu-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            border-radius: 8px;
+            transition: background-color 0.2s ease, box-shadow 0.2s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            font-size: 16px;
+        }
+        .menu-item:hover {
+            background-color: #f9f9f9;
+        }
+        .menu-item input[type="checkbox"] {
+            margin-right: 12px;
+            min-width: 20px;
+            min-height: 20px;
+            accent-color: #007bff;
+        }
+        .menu-item-content {
+            flex-grow: 1;
+        }
+        .menu-name {
+            font-weight: 600;
+            color: #333;
+        }
+        .menu-details {
+            font-size: 14px;
+            color: #666;
+            margin-top: 2px;
+        }
+        .sub-menu {
+            font-size: 12px;
+            color: #888;
+            margin-left: 32px;
+            margin-top: 5px;
+        }
+        .price-summary {
+            margin-top: 30px;
+            padding: 20px;
+            border-radius: 12px;
+            background-color: #e9f5ff;
+            text-align: center;
+            border: 1px solid #cce5ff;
+        }
+        .total-price {
+            font-size: 24px;
+            font-weight: 700;
+            color: #004085;
+            margin-bottom: 10px;
+        }
+        .guidance-message {
+            font-size: 16px;
+            font-weight: 400;
+            color: #555;
+        }
+        .total-time-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 15px;
+            gap: 10px;
+        }
+        .total-time-label {
+            font-size: 16px;
+            font-weight: 500;
+            color: #333;
+        }
+        #totalTime {
+            font-size: 16px;
+            padding: 8px 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            text-align: center;
+            background-color: #fff;
+            color: #555;
+            font-weight: 600;
+            width: 150px;
+        }
+        .copy-button, .reservation-button {
+            width: 100%;
+            padding: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-top: 10px;
+        }
+        .copy-button {
+            background-color: #007bff;
+        }
+        .copy-button:hover:not(.disabled) {
+            background-color: #0056b3;
+        }
+        .reservation-button {
+            background-color: #28a745;
+        }
+        .reservation-button:hover:not(.disabled) {
+            background-color: #218838;
+        }
+        .disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+        #message-area {
+            width: 100%;
+            height: 100px;
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            resize: none;
+            background-color: #f8f9fa;
+            color: #333;
+            font-size: 14px;
+        }
+        .disabled-item {
+            color: #aaa !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>脱毛料金シミュレーター</h1>
+        <p style="text-align: center; color: #666;">手順①.　施術希望部位を選択してください。金額と時間が表示されます。</p>
+
+        <h2>セットメニュー</h2>
+        <div class="menu-list">
+            <label class="menu-item" id="label_set_eyebrow">
+                <input type="checkbox" id="set_eyebrow" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">眉毛セット(40分) 税込 11,000円</div>
+                    <div class="sub-menu">＜眉上・眉下・眉中・デザイン料＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_fullface">
+                <input type="checkbox" id="set_fullface" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">全顔セット(65分) 税込 13,200円</div>
+                    <div class="sub-menu">＜鼻下・口下・頬・フェイスライン・首＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_fullface_eyebrow">
+                <input type="checkbox" id="set_fullface_eyebrow" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">全顔+眉毛脱毛セット(105分) 税込 22,000円</div>
+                    <div class="sub-menu">＜全顔セット・眉毛セット＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_fullbody_all">
+                <input type="checkbox" id="set_fullbody_all" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">全身オール（顔、VIO含む）(270分) 税込 52,800円</div>
+                    <div class="sub-menu">＜上半身セット・下半身セット＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_fullbody_noface">
+                <input type="checkbox" id="set_fullbody_noface" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">顔なし全身(200分) 税込 41,800円</div>
+                    <div class="sub-menu">＜脇・うなじ・背中上・背中下・胸・腹部・肘上・肘下・手と指・Vライン・Iライン・Oライン・臀部・膝上・膝下・足と指＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_upperbody">
+                <input type="checkbox" id="set_upperbody" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">上半身セット(170分) 税込 30,800円</div>
+                    <div class="sub-menu">＜全顔セット・脇・胸・腹部・うなじ・背中上・背中下・肘上・肘下・手と指＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_lowerbody">
+                <input type="checkbox" id="set_lowerbody" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">下半身セット(150分) 税込 30,800円</div>
+                    <div class="sub-menu">＜VIOセット・臀部・膝上・膝下・足と指＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_vio">
+                <input type="checkbox" id="set_vio" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">VIOセット(50分) 税込 16,500円</div>
+                    <div class="sub-menu">＜Vライン・Iライン・Oライン＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_fullface_vio">
+                <input type="checkbox" id="set_fullface_vio" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">全顔+VIOセット(100分) 税込 27,500円</div>
+                    <div class="sub-menu">＜全顔セット・VIOセット＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_vio_buttocks">
+                <input type="checkbox" id="set_vio_buttocks" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">VIO+臀部（おしり）セット(60分) 税込 20,900円</div>
+                    <div class="sub-menu">＜VIOセット・臀部＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_navel_vio">
+                <input type="checkbox" id="set_navel_vio" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">ヘソ下+VIOセット(55分) 税込 18,700円</div>
+                    <div class="sub-menu">＜ヘソ下・VIOセット＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_chest_abdomen">
+                <input type="checkbox" id="set_chest_abdomen" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">胸＋腹部セット(35分) 税込 9,900円</div>
+                    <div class="sub-menu">＜胸・乳輪周り・腹部・ヘソ下＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_arms_legs">
+                <input type="checkbox" id="set_arms_legs" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">両腕+両足セット(125分) 税込 28,600円</div>
+                    <div class="sub-menu">＜肘上・肘下・手と指・膝上・膝下・足と指＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_arms">
+                <input type="checkbox" id="set_arms" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">両腕セット(65分) 税込 17,600円</div>
+                    <div class="sub-menu">＜肘上・肘下・手と指＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_legs">
+                <input type="checkbox" id="set_legs" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">両足セット(65分) 税込 17,600円</div>
+                    <div class="sub-menu">＜膝上・膝下・足と指＞</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_set_ear_whole">
+                <input type="checkbox" id="set_ear_whole" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">耳全体（耳珠、耳たぶ含む）(25分) 税込 8,800円</div>
+                    <div class="sub-menu">＜耳珠・耳たぶ＞</div>
+                </div>
+            </label>
+        </div>
+
+        <h2>パーツメニュー</h2>
+        <div class="menu-list">
+            <label class="menu-item" id="label_part_nose_under">
+                <input type="checkbox" id="part_nose_under" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">鼻下(16分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_mouth_under">
+                <input type="checkbox" id="part_mouth_under" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">口下(16分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_cheek">
+                <input type="checkbox" id="part_cheek" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">頬(16分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_face_line">
+                <input type="checkbox" id="part_face_line" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">フェイスライン(16分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_neck">
+                <input type="checkbox" id="part_neck" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">首(16分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_nape">
+                <input type="checkbox" id="part_nape" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">うなじ(16分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_armpit">
+                <input type="checkbox" id="part_armpit" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">脇(13分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_chest_nipple">
+                <input type="checkbox" id="part_chest_nipple" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">胸（乳輪周り含む）(16分) 税込 6,600円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_abdomen_navel">
+                <input type="checkbox" id="part_abdomen_navel" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">腹部（ヘソ下含む）(16分) 税込 6,600円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_back_upper">
+                <input type="checkbox" id="part_back_upper" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">背中上(16分) 税込 6,600円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_back_lower">
+                <input type="checkbox" id="part_back_lower" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">背中下(16分) 税込 6,600円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_buttocks">
+                <input type="checkbox" id="part_buttocks" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">臀部（おしり）(16分) 税込 6,600円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_elbow_upper">
+                <input type="checkbox" id="part_elbow_upper" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">肘上(16分) 税込 6,600円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_elbow_lower">
+                <input type="checkbox" id="part_elbow_lower" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">肘下(18分) 税込 6,600円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_hand_finger">
+                <input type="checkbox" id="part_hand_finger" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">手の甲+指(12分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_knee_upper">
+                <input type="checkbox" id="part_knee_upper" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">膝上(35分) 税込 8,800円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_knee_lower">
+                <input type="checkbox" id="part_knee_lower" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">膝下(35分) 税込 8,800円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_foot_toe">
+                <input type="checkbox" id="part_foot_toe" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">足の甲＋指(12分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_v_line">
+                <input type="checkbox" id="part_v_line" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">Vライン(16分) 税込 7,700円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_i_line">
+                <input type="checkbox" id="part_i_line" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">Iライン(20分) 税込 7,700円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_o_line">
+                <input type="checkbox" id="part_o_line" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">Oライン(16分) 税込 5,500円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_forehead">
+                <input type="checkbox" id="part_forehead" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">おでこ(13分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_eyebrow_upper">
+                <input type="checkbox" id="part_eyebrow_upper" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">眉上(13分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_eyebrow_lower">
+                <input type="checkbox" id="part_eyebrow_lower" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">眉下(13分) 税込 6,600円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_eyebrow_middle">
+                <input type="checkbox" id="part_eyebrow_middle" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">眉中(13分) 税込 2,200円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_small_nose">
+                <input type="checkbox" id="part_small_nose" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">小鼻(13分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_nose_hair">
+                <input type="checkbox" id="part_nose_hair" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">鼻毛(20分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_tragus">
+                <input type="checkbox" id="part_tragus" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">耳珠(13分) 税込 3,300円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_earlobe">
+                <input type="checkbox" id="part_earlobe" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">耳たぶ(13分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_nipple">
+                <input type="checkbox" id="part_nipple" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">乳輪周り(10分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_navel_under">
+                <input type="checkbox" id="part_navel_under" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">ヘソ下(10分) 税込 4,400円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_part_design_fee">
+                <input type="checkbox" id="part_design_fee" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">デザイン料(0分) 税込 1,100円</div>
+                </div>
+            </label>
+        </div>
+
+        <h2>その他メニュー</h2>
+        <div class="menu-list">
+            <label class="menu-item" id="label_other_lala_peel">
+                <input type="checkbox" id="other_lala_peel" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">ララピール(90分) 税込 12,100円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_other_face_correction">
+                <input type="checkbox" id="other_face_correction" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">小顔矯正術(90分) 税込 22,000円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_other_derma_scalp">
+                <input type="checkbox" id="other_derma_scalp" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">ダーマインジェクション（スカルプケア）(50分) 税込 22,000円</div>
+                </div>
+            </label>
+            <label class="menu-item" id="label_other_derma_skin">
+                <input type="checkbox" id="other_derma_skin" onchange="keisan()">
+                <div class="menu-item-content">
+                    <div class="menu-name">ダーマインジェクション（肌育ケア）(50分) 税込 22,000円</div>
+                </div>
+            </label>
+        </div>
+
+        <div class="price-summary">
+            <p style="margin: 0; font-weight: 500;">ご予約時間</p>
+            <div class="total-time-container">
+                <input type="text" id="totalTime" value="希望部位を選択してください" readonly>
+                <div class="total-time-label"></div>
+            </div>
+            <p id="totalPrice" class="total-price guidance-message">手順①.　施術希望部位を選択してください。</p>
+            <button id="copyButton" class="copy-button disabled" onclick="copyToClipboard()">選択内容をコピー</button>
+            <textarea id="message-area" style="display: none;" readonly></textarea>
+            <button id="reservationButton" class="reservation-button disabled">
+                <a href="https://reservia.jp/reserve/staff/6513?is_guest=1" target="_blank" style="color:white; text-decoration: none;">ご予約ページへ</a>
+            </button>
+        </div>
+    </div>
+    <script src="script.js" defer></script>
+</body>
+</html>
