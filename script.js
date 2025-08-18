@@ -98,7 +98,10 @@ function getFinalParts(itemId, currentPath = new Set()) {
         finalParts.push(itemId);
     } else if (item.type === "set" && item.parts && item.parts.length > 0) {
         item.parts.forEach(partId => {
-            finalParts.push(...getFinalParts(partId, currentPath));
+            const subItem = itemMap.get(partId);
+            if (subItem) {
+                finalParts.push(...getFinalParts(partId, currentPath));
+            }
         });
     } else if (item.type === "part") {
         finalParts.push(itemId);
@@ -146,7 +149,7 @@ window.keisan = function() { // グローバルスコープに公開
     const userCheckedPartIds = new Set(checkedItems.filter(item => item.type === "part").map(item => item.id));
 
     let setsToAutoSelect = new Set();
-    const sortedSets = items.filter(item => item.type === "set").sort((a, b) => getFinalParts(b).length - getFinalParts(a).length);
+    const sortedSets = items.filter(item => item.type === "set").sort((a, b) => getFinalParts(b.id).length - getFinalParts(a.id).length);
 
     sortedSets.forEach(item => {
         const partsForThisSet = item.parts;
@@ -209,13 +212,12 @@ window.keisan = function() { // グローバルスコープに公開
     // 非活性化リストを構築
     const itemsToDisable = new Set();
     items.forEach(item => {
-        if (item.type === "set") {
-            const setParts = getFinalParts(item.id);
-            if (allFinalSelectedIds.some(finalId => setParts.includes(finalId)) && !allFinalSelectedIds.includes(item.id)) {
-                itemsToDisable.add(item.id);
-            }
-        } else if (item.type === "part") {
-            const isContainedInFinalSet = finalSelectedSets.size > 0 && [...finalSelectedSets].some(setId => getFinalParts(setId).includes(item.id));
+        const isFinalSelection = allFinalSelectedIds.includes(item.id);
+        if (!isFinalSelection) {
+            const isContainedInFinalSet = finalSelectedSets.size > 0 && [...finalSelectedSets].some(setId => {
+                const finalParts = getFinalParts(setId);
+                return finalParts.includes(item.id);
+            });
             if (isContainedInFinalSet) {
                 itemsToDisable.add(item.id);
             }
