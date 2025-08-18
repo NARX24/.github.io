@@ -111,8 +111,7 @@ function getFinalParts(itemId, currentPath = new Set()) {
 window.keisan = function() { // グローバルスコープに公開
     let totalTime = 0;
     let totalPrice = 0;
-    const selectedPartsDisplay = [];
-    const selectedPartsForCopy = [];
+    const selectedItems = [];
     const messageArea = document.getElementById("message-area");
     const totalPriceDisplay = document.getElementById("totalPrice");
     const copyButton = document.getElementById("copyButton");
@@ -135,127 +134,144 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
-    // 選択されたパーツから自動的にセットメニューを選択するロジック
-    const selectedPartIds = new Set();
-    const selectedSetIds = new Set();
-    const setsAdded = [];
-
-    // まず、ユーザーが手動でチェックした項目を取得
+    const selectedIds = new Set();
+    const checkedItems = [];
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         if (checkbox && checkbox.checked) {
-            if (item.type === "part") {
-                selectedPartIds.add(item.id);
-            } else if (item.type === "set") {
-                selectedSetIds.add(item.id);
-            } else {
-                // "other"タイプはそのまま計算に含める
-                selectedSetIds.add(item.id);
-            }
+            checkedItems.push(item);
         }
     });
 
-    // 選択されたパーツが完全に一致するセットを自動でチェック
+    // 選択されたチェックボックスから、最終的に選択すべきセットメニューを特定
+    const finalSelectedSets = new Set();
+    const finalSelectedParts = new Set();
+    
+    // 最初のイテレーションで、全選択されたパーツからセットを特定
     items.forEach(item => {
         if (item.type === "set" && item.parts) {
-            const finalSetParts = getFinalParts(item.id);
-            const allPartsSelected = finalSetParts.length > 0 && finalSetParts.every(partId => selectedPartIds.has(partId));
-            
-            // セットが自動選択された場合、元のパーツのチェックを外し、セットをチェックする
-            if (allPartsSelected && !selectedSetIds.has(item.id)) {
-                const checkbox = document.getElementById(item.id);
-                if (checkbox) {
-                    checkbox.checked = true;
-                    // 自動選択されたセットのIDを記録
-                    setsAdded.push(item.id);
-                    selectedSetIds.add(item.id);
+            const finalParts = getFinalParts(item.id);
+            const allPartsSelected = finalParts.length > 0 && finalParts.every(partId => {
+                const partCheckbox = document.getElementById(partId);
+                return partCheckbox && partCheckbox.checked;
+            });
+
+            if (allPartsSelected) {
+                finalSelectedSets.add(item.id);
+            }
+        }
+    });
+    
+    // 複数のセットが組み合わさって、より大きなセットになる場合をチェック
+    let combinedSetsAdded;
+    do {
+        combinedSetsAdded = false;
+        items.forEach(item => {
+            if (item.type === "set" && item.parts) {
+                // 既に最終選択セットに含まれている場合はスキップ
+                if (finalSelectedSets.has(item.id)) return;
+                
+                const partsForThisSet = item.parts;
+                const allSubItemsSelected = partsForThisSet.length > 0 && partsForThisSet.every(subItemId => {
+                    const subItem = itemMap.get(subItemId);
+                    if (!subItem) return false;
+                    
+                    if (subItem.type === "set") {
+                        return finalSelectedSets.has(subItemId);
+                    } else if (subItem.type === "part") {
+                        const subItemCheckbox = document.getElementById(subItemId);
+                        return subItemCheckbox && subItemCheckbox.checked;
+                    }
+                    return false;
+                });
+                
+                if (allSubItemsSelected) {
+                    finalSelectedSets.add(item.id);
+                    combinedSetsAdded = true;
                 }
+            }
+        });
+    } while (combinedSetsAdded);
+
+    // 最終的に選ばれたセットに含まれない、チェック済みのパーツとその他メニューを抽出
+    checkedItems.forEach(item => {
+        if (item.type === "part") {
+            let isContainedInSet = false;
+            for (const setId of finalSelectedSets) {
+                if (getFinalParts(setId).includes(item.id)) {
+                    isContainedInSet = true;
+                    break;
+                }
+            }
+            if (!isContainedInSet) {
+                finalSelectedParts.add(item.id);
+            }
+        } else if (item.type === "other") {
+            finalSelectedParts.add(item.id);
+        }
+    });
+
+    // チェックボックスの状態を更新
+    items.forEach(item => {
+        const checkbox = document.getElementById(item.id);
+        if (checkbox) {
+            if (finalSelectedSets.has(item.id) || finalSelectedParts.has(item.id)) {
+                checkbox.checked = true;
+                // セットに含まれるパーツは非活性化
+                if (item.type === "set" && item.parts) {
+                    getFinalParts(item.id).forEach(partId => {
+                        const partCheckbox = document.getElementById(partId);
+                        const partLabel = document.getElementById(`label_${partId}`);
+                        if (partCheckbox && itemMap.get(partId).type === "part") {
+                            partCheckbox.disabled = true;
+                            partCheckbox.checked = false;
+                            if (partLabel) {
+                                partLabel.classList.add('disabled-item');
+                            }
+                        }
+                    });
+                }
+            } else {
+                checkbox.checked = false;
             }
         }
     });
 
-    // 新たに自動選択されたセットに含まれるパーツのチェックを外す
-    if (setsAdded.length > 0) {
-        setsAdded.forEach(setId => {
-            const finalSetParts = getFinalParts(setId);
-            finalSetParts.forEach(partId => {
-                const partCheckbox = document.getElementById(partId);
-                if (partCheckbox) {
-                    partCheckbox.checked = false;
-                    selectedPartIds.delete(partId);
-                }
-            });
-        });
-    }
-
-    // 最終的な合計金額と時間を計算
-    const finalSelectedIds = new Set();
-    
-    // セットメニューとその他メニューのIDを最終選択リストに追加
-    selectedSetIds.forEach(id => finalSelectedIds.add(id));
-    
-    // 重複を削除した後のパーツメニューのIDを追加
-    selectedPartIds.forEach(id => {
-        if (![...selectedSetIds].some(setId => getFinalParts(setId).includes(id))) {
-             finalSelectedIds.add(id);
-        }
-    });
-    
-    // 合計金額と時間を計算
+    // 料金と時間の計算
+    const finalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
     finalSelectedIds.forEach(id => {
         const item = itemMap.get(id);
         if (item) {
             totalTime += item.time;
             totalPrice += item.price;
+            selectedItems.push(item);
         }
     });
-
-    // 画面表示用のテキストを生成
-    finalSelectedIds.forEach(id => {
-        const item = itemMap.get(id);
-        if (item) {
-            let setDetailText = '';
-            if (item.type === "set" && item.parts && item.parts.length > 0) {
-                const finalExpandedNames = [];
-                item.parts.forEach(partId => {
-                    const subItem = itemMap.get(partId);
-                    if (subItem) {
-                        if (subItem.type === "set") {
-                            getFinalParts(subItem.id).forEach(nestedPartId => {
-                                const nestedSubItem = itemMap.get(nestedPartId);
-                                if (nestedSubItem && nestedSubItem.name) {
-                                    finalExpandedNames.push(nestedSubItem.name.replace(/（[^）]*）/g, ''));
-                                }
-                            });
-                        } else if (subItem.type === "part" && subItem.name) {
-                            finalExpandedNames.push(subItem.name.replace(/（[^）]*）/g, ''));
-                        }
-                    }
-                });
-                setDetailText = finalExpandedNames.length > 0 ? `＜${[...new Set(finalExpandedNames)].join("・")}＞` : '';
-            }
-            selectedPartsDisplay.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`);
-            selectedPartsForCopy.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円`);
-        }
-    });
-
-    // セットに含まれるパーツを非活性化
-    items.forEach(item => {
-        const checkbox = document.getElementById(item.id);
-        if (checkbox && checkbox.checked && item.type === "set") {
-            const containedParts = getFinalParts(item.id);
-            containedParts.forEach(partId => {
-                const partCheckbox = document.getElementById(partId);
-                const partLabel = document.getElementById(`label_${partId}`);
-                if (partCheckbox && itemMap.get(partId) && itemMap.get(partId).type === "part") {
-                    partCheckbox.disabled = true;
-                    // partCheckbox.checked = false; // 自動選択ロジックで既に外れている
-                    if (partLabel) {
-                        partLabel.classList.add('disabled-item');
+    
+    // 表示用のテキストを生成
+    const selectedPartsForCopy = [];
+    selectedItems.forEach(item => {
+        let setDetailText = '';
+        if (item.type === "set" && item.parts && item.parts.length > 0) {
+            const finalExpandedNames = [];
+            item.parts.forEach(partId => {
+                const subItem = itemMap.get(partId);
+                if (subItem) {
+                    if (subItem.type === "set") {
+                        getFinalParts(subItem.id).forEach(nestedPartId => {
+                            const nestedSubItem = itemMap.get(nestedPartId);
+                            if (nestedSubItem && nestedSubItem.name) {
+                                finalExpandedNames.push(nestedSubItem.name.replace(/（[^）]*）/g, ''));
+                            }
+                        });
+                    } else if (subItem.type === "part" && subItem.name) {
+                        finalExpandedNames.push(subItem.name.replace(/（[^）]*）/g, ''));
                     }
                 }
             });
+            setDetailText = finalExpandedNames.length > 0 ? `＜${[...new Set(finalExpandedNames)].join("・")}＞` : '';
         }
+        selectedPartsForCopy.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`);
     });
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
