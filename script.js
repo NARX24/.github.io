@@ -73,25 +73,6 @@ items.forEach(item => {
     itemMap.set(item.id, item);
 });
 
-// 各パーツがどのセットに含まれているかを示すマップを作成
-const partToSetMap = new Map();
-items.forEach(item => {
-    // セットメニューのみを対象
-    if (item.type === "set" && item.parts) {
-        // セットに含まれるすべての最終的なパーツを取得
-        const finalParts = getFinalParts(item.id);
-        finalParts.forEach(partId => {
-            if (!partToSetMap.has(partId)) {
-                partToSetMap.set(partId, []);
-            }
-            // 既に存在する場合は追加しないように修正
-            if (!partToSetMap.get(partId).includes(item.id)) {
-                partToSetMap.get(partId).push(item.id);
-            }
-        });
-    }
-});
-
 /**
  * 指定されたアイテムIDが最終的に展開される個別パーツのIDリストを再帰的に取得する関数。
  * 無限ループを防止します。
@@ -113,7 +94,6 @@ function getFinalParts(itemId, currentPath = new Set()) {
         return finalParts;
     }
 
-    // "other"タイプのメニューは重複チェックの対象外なので、そのまま自身のIDを返す
     if (item.type === "other") {
         finalParts.push(itemId);
     } else if (item.type === "set" && item.parts && item.parts.length > 0) {
@@ -131,48 +111,46 @@ function getFinalParts(itemId, currentPath = new Set()) {
 window.keisan = function() { // グローバルスコープに公開
     let totalTime = 0;
     let totalPrice = 0;
-    const selectedPartsDisplay = []; // 画面表示用の選択項目リスト
-    const selectedPartsForCopy = []; // コピー用の選択項目リスト (詳細なし)
-    const selectedDetailedPartIds = new Set(); // 選択された各**最終的な個別パーツのID**を追跡するためのSet
-
+    const selectedPartsDisplay = [];
+    const selectedPartsForCopy = [];
     const messageArea = document.getElementById("message-area");
     const totalPriceDisplay = document.getElementById("totalPrice");
     const copyButton = document.getElementById("copyButton");
     const reservationButton = document.getElementById("reservationButton");
-    const totalTimeInput = document.getElementById("totalTime"); // totalTimeのinput要素を取得
+    const totalTimeInput = document.getElementById("totalTime");
 
     messageArea.style.display = "none";
     messageArea.classList.remove('error');
-    messageArea.value = ""; // textareaなのでinnerHTMLではなくvalue
+    messageArea.value = "";
 
-    // まず全てのパーツメニュー（チェックボックスとラベル）を有効な状態に戻す
-    // "other"タイプのメニューもdisabledを解除する対象に含める
+    // 全てのチェックボックスを有効な状態に戻す
     items.forEach(item => {
-        if (item.type === "part" || item.type === "other") {
-            const checkbox = document.getElementById(item.id);
+        const checkbox = document.getElementById(item.id);
+        if (checkbox) {
+            checkbox.disabled = false;
             const label = document.getElementById(`label_${item.id}`);
-            if (checkbox) {
-                checkbox.disabled = false; // 有効化
-                if (label) {
-                    label.classList.remove('disabled-item');
-                }
+            if (label) {
+                label.classList.remove('disabled-item');
             }
         }
     });
-    
-    // 選択状態をチェックして、セットに自動選択するロジック
-    let setsAdded = false;
-    const selectedParts = new Set();
-    const selectedSets = new Set();
 
-    // 最初にすべてのチェック済みのパーツとセットを取得
+    // 選択されたパーツから自動的にセットメニューを選択するロジック
+    const selectedPartIds = new Set();
+    const selectedSetIds = new Set();
+    const setsAdded = [];
+
+    // まず、ユーザーが手動でチェックした項目を取得
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         if (checkbox && checkbox.checked) {
             if (item.type === "part") {
-                selectedParts.add(item.id);
+                selectedPartIds.add(item.id);
             } else if (item.type === "set") {
-                selectedSets.add(item.id);
+                selectedSetIds.add(item.id);
+            } else {
+                // "other"タイプはそのまま計算に含める
+                selectedSetIds.add(item.id);
             }
         }
     });
@@ -180,33 +158,62 @@ window.keisan = function() { // グローバルスコープに公開
     // 選択されたパーツが完全に一致するセットを自動でチェック
     items.forEach(item => {
         if (item.type === "set" && item.parts) {
-            // セットに含まれる最終的なパーツのIDリストを取得
             const finalSetParts = getFinalParts(item.id);
-            const allPartsSelected = finalSetParts.length > 0 && finalSetParts.every(partId => selectedParts.has(partId));
+            const allPartsSelected = finalSetParts.length > 0 && finalSetParts.every(partId => selectedPartIds.has(partId));
             
-            if (allPartsSelected && !selectedSets.has(item.id)) {
+            // セットが自動選択された場合、元のパーツのチェックを外し、セットをチェックする
+            if (allPartsSelected && !selectedSetIds.has(item.id)) {
                 const checkbox = document.getElementById(item.id);
                 if (checkbox) {
                     checkbox.checked = true;
-                    setsAdded = true;
+                    // 自動選択されたセットのIDを記録
+                    setsAdded.push(item.id);
+                    selectedSetIds.add(item.id);
                 }
             }
         }
     });
 
-    // 新たにセットが自動選択された場合は再帰的に keisan() を呼び出して再計算
-    if (setsAdded) {
-        keisan();
-        return;
+    // 新たに自動選択されたセットに含まれるパーツのチェックを外す
+    if (setsAdded.length > 0) {
+        setsAdded.forEach(setId => {
+            const finalSetParts = getFinalParts(setId);
+            finalSetParts.forEach(partId => {
+                const partCheckbox = document.getElementById(partId);
+                if (partCheckbox) {
+                    partCheckbox.checked = false;
+                    selectedPartIds.delete(partId);
+                }
+            });
+        });
     }
 
-    // 重複チェックは不要になったので、計算ロジックを直接実行
-    items.forEach(item => {
-        const checkbox = document.getElementById(item.id);
-        if (checkbox && checkbox.checked) {
+    // 最終的な合計金額と時間を計算
+    const finalSelectedIds = new Set();
+    
+    // セットメニューとその他メニューのIDを最終選択リストに追加
+    selectedSetIds.forEach(id => finalSelectedIds.add(id));
+    
+    // 重複を削除した後のパーツメニューのIDを追加
+    selectedPartIds.forEach(id => {
+        if (![...selectedSetIds].some(setId => getFinalParts(setId).includes(id))) {
+             finalSelectedIds.add(id);
+        }
+    });
+    
+    // 合計金額と時間を計算
+    finalSelectedIds.forEach(id => {
+        const item = itemMap.get(id);
+        if (item) {
             totalTime += item.time;
             totalPrice += item.price;
-            
+        }
+    });
+
+    // 画面表示用のテキストを生成
+    finalSelectedIds.forEach(id => {
+        const item = itemMap.get(id);
+        if (item) {
             let setDetailText = '';
             if (item.type === "set" && item.parts && item.parts.length > 0) {
                 const finalExpandedNames = [];
@@ -232,10 +239,9 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
-    // ここで再度全てのチェックボックスの状態をチェックし、セットに含まれるパーツを非活性化
+    // セットに含まれるパーツを非活性化
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
-        // checkboxが存在し、かつ選択されているセットメニューの場合のみ処理
         if (checkbox && checkbox.checked && item.type === "set") {
             const containedParts = getFinalParts(item.id);
             containedParts.forEach(partId => {
@@ -243,7 +249,7 @@ window.keisan = function() { // グローバルスコープに公開
                 const partLabel = document.getElementById(`label_${partId}`);
                 if (partCheckbox && itemMap.get(partId) && itemMap.get(partId).type === "part") {
                     partCheckbox.disabled = true;
-                    partCheckbox.checked = false;
+                    // partCheckbox.checked = false; // 自動選択ロジックで既に外れている
                     if (partLabel) {
                         partLabel.classList.add('disabled-item');
                     }
@@ -253,8 +259,6 @@ window.keisan = function() { // グローバルスコープに公開
     });
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
-
-    // 小数点以下が.0の場合に整数にする
     if (hours % 1 === 0) {
         currentTotalHours = hours.toString();
     } else {
@@ -266,10 +270,8 @@ window.keisan = function() { // グローバルスコープに公開
         totalPriceDisplay.classList.add('guidance-message');
         copyButton.classList.add("disabled");
         reservationButton.classList.add("disabled");
-
         totalTimeInput.value = "希望部位を選択してください";
         currentTotalHours = "0.0";
-
     } else {
         totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
         totalPriceDisplay.classList.remove('guidance-message');
@@ -280,7 +282,7 @@ window.keisan = function() { // グローバルスコープに公開
     copyText = `選択した部位:\n${selectedPartsForCopy.join("\n")}\n---\n合計時間: ${currentTotalHours}時間\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 }
 
-window.copyToClipboard = async function() { // グローバルスコープに公開
+window.copyToClipboard = async function() {
     const messageArea = document.getElementById("message-area");
     const reservationButton = document.getElementById("reservationButton");
 
@@ -296,7 +298,6 @@ window.copyToClipboard = async function() { // グローバルスコープに公
         await navigator.clipboard.writeText(copyText);
         showMessage(`選択内容がコピーされました！\nご予約メニュー【${currentTotalHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`);
         reservationButton.classList.remove("disabled");
-
     } catch (err) {
         console.error('クリップボードへのコピーに失敗しました:', err);
         showMessage("クリップボードへのコピーに失敗しました。手動でコピーしてください。", true);
