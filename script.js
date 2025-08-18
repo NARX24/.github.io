@@ -141,61 +141,54 @@ window.keisan = function() { // グローバルスコープに公開
             checkedItems.push(item);
         }
     });
-
-    const finalSelectedSets = new Set();
-    const finalSelectedParts = new Set();
     
-    // 手動で選択されたセットとパーツのIDを収集
+    // ユーザーがチェックしたメニューを分類
     const userCheckedSetIds = new Set(checkedItems.filter(item => item.type === "set").map(item => item.id));
     const userCheckedPartIds = new Set(checkedItems.filter(item => item.type === "part").map(item => item.id));
 
     // 自動選択の候補となるセットを洗い出す
     let setsToAutoSelect = new Set();
-    let combinedSetsAdded;
-    do {
-        combinedSetsAdded = false;
-        items.forEach(item => {
-            if (item.type === "set" && item.parts) {
-                const partsForThisSet = item.parts;
-                const allSubItemsSelected = partsForThisSet.length > 0 && partsForThisSet.every(subItemId => {
-                    const subItem = itemMap.get(subItemId);
-                    if (!subItem) return false;
-                    
-                    if (subItem.type === "set") {
-                        return userCheckedSetIds.has(subItemId) || setsToAutoSelect.has(subItemId);
-                    } else if (subItem.type === "part") {
-                        return userCheckedPartIds.has(subItemId);
-                    }
-                    return false;
-                });
-                
-                if (allSubItemsSelected && !userCheckedSetIds.has(item.id) && !setsToAutoSelect.has(item.id)) {
-                    setsToAutoSelect.add(item.id);
-                    combinedSetsAdded = true;
-                }
+    items.forEach(item => {
+        if (item.type === "set" && item.parts) {
+            // セットを構成するサブアイテムのIDリストを取得
+            const partsForThisSet = item.parts;
+            // 全てのサブアイテムがチェックされているか確認
+            const allSubItemsSelected = partsForThisSet.length > 0 && partsForThisSet.every(subItemId => {
+                const subItem = itemMap.get(subItemId);
+                return subItem && ((subItem.type === "set" && userCheckedSetIds.has(subItemId)) || (subItem.type === "part" && userCheckedPartIds.has(subItemId)));
+            });
+            
+            if (allSubItemsSelected) {
+                setsToAutoSelect.add(item.id);
             }
-        });
-    } while (combinedSetsAdded);
-
-    // ユーザーが手動で選択したセットと自動選択されたセットを統合
-    let allSelectedSets = new Set([...userCheckedSetIds, ...setsToAutoSelect]);
-    
-    // より大きなセットに含まれる小さなセットを削除
-    let setsToRemove = new Set();
-    allSelectedSets.forEach(setId1 => {
-        allSelectedSets.forEach(setId2 => {
-            if (setId1 !== setId2) {
-                const item1 = itemMap.get(setId1);
-                if (item1 && item1.parts && item1.parts.includes(setId2)) {
-                    setsToRemove.add(setId2);
-                }
-            }
-        });
+        }
     });
-    setsToRemove.forEach(id => allSelectedSets.delete(id));
-    
-    allSelectedSets.forEach(id => finalSelectedSets.add(id));
 
+    // ユーザーが手動で選択したセットと自動選択されたセットを統合し、より大きなセットを優先する
+    let finalSelectedSets = new Set([...userCheckedSetIds, ...setsToAutoSelect]);
+    
+    const allSetIds = [...finalSelectedSets];
+    allSetIds.sort((a, b) => getFinalParts(b).length - getFinalParts(a).length);
+
+    let setsToAdd = new Set();
+    let setsToIgnore = new Set();
+
+    allSetIds.forEach(setId => {
+        if (setsToIgnore.has(setId)) return;
+
+        const item = itemMap.get(setId);
+        if (item && item.parts) {
+            setsToAdd.add(setId);
+            item.parts.forEach(subItemId => {
+                if (itemMap.get(subItemId).type === "set") {
+                    setsToIgnore.add(subItemId);
+                }
+            });
+        }
+    });
+
+    finalSelectedSets = setsToAdd;
+    
     // 最終的に選ばれたセットに含まれない、チェック済みのパーツとその他メニューを抽出
     checkedItems.forEach(item => {
         if (item.type === "part") {
@@ -222,14 +215,14 @@ window.keisan = function() { // グローバルスコープに公開
             
             if (isFinalSelection) {
                 checkbox.checked = true;
-                if (item.type === "set" && item.parts) {
-                    getFinalParts(item.id).forEach(partId => {
-                        const partCheckbox = document.getElementById(partId);
-                        const partLabel = document.getElementById(`label_${partId}`);
-                        if (partCheckbox && itemMap.get(partId).type === "part") {
-                            partCheckbox.disabled = true;
-                            if (partLabel) {
-                                partLabel.classList.add('disabled-item');
+                if (item.type === "set") {
+                    item.parts.forEach(subItemId => {
+                        const subItemCheckbox = document.getElementById(subItemId);
+                        const subItemLabel = document.getElementById(`label_${subItemId}`);
+                        if (subItemCheckbox) {
+                            subItemCheckbox.disabled = true;
+                            if (subItemLabel) {
+                                subItemLabel.classList.add('disabled-item');
                             }
                         }
                     });
@@ -240,6 +233,7 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
     
+    // 料金と時間の再計算
     const finalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
     const uniqueFinalSelectedIds = [...new Set(finalSelectedIds)];
 
