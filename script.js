@@ -56,7 +56,7 @@ const items = [
     { id: "part_nipple", name: "乳輪周り", time: 10, price: 4400, type: "part" },
     { id: "part_navel_under", name: "ヘソ下", time: 10, price: 4400, type: "part" },
     { id: "part_design_fee", name: "デザイン料", time: 0, price: 1100, type: "part" },
-    
+
     // ■その他メニュー■
     { id: "other_lala_peel", name: "ララピール", time: 90, price: 12100, type: "other" },
     { id: "other_face_correction", name: "小顔矯正術", time: 90, price: 22000, type: "other" },
@@ -64,22 +64,14 @@ const items = [
     { id: "other_derma_skin", name: "ダーマインジェクション（肌育ケア）", time: 50, price: 22000, type: "other" }
 ];
 
-let copyText = ""; // コピーするテキストを格納する変数
-let currentTotalHours = "0"; // 合計時間を格納する変数
+let copyText = "";
+let currentTotalHours = "0";
 
-// 全てのアイテムをIDで参照できるようにするマップ
 const itemMap = new Map();
 items.forEach(item => {
     itemMap.set(item.id, item);
 });
 
-/**
- * 指定されたアイテムIDが最終的に展開される個別パーツのIDリストを再帰的に取得する関数。
- * 無限ループを防止します。
- * @param {string} itemId - 展開したいアイテムのID。
- * @param {Set<string>} currentPath - 現在の再帰呼び出しパスで訪問済みのアイテムIDを追跡するためのSet。無限ループ防止用。
- * @returns {Array<string>} 最終的に含まれる個別パーツのIDの配列。
- */
 function getFinalParts(itemId, currentPath = new Set()) {
     if (currentPath.has(itemId)) {
         return [];
@@ -111,7 +103,7 @@ function getFinalParts(itemId, currentPath = new Set()) {
     return finalParts;
 }
 
-window.keisan = function() { // グローバルスコープに公開
+window.keisan = function() {
     let totalTime = 0;
     let totalPrice = 0;
     const selectedItems = [];
@@ -124,8 +116,7 @@ window.keisan = function() { // グローバルスコープに公開
     messageArea.style.display = "none";
     messageArea.classList.remove('error');
     messageArea.value = "";
-    
-    // 計算ロジックの前に、**全ての**チェックボックスとラベルを有効化する
+
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         const label = document.getElementById(`label_${item.id}`);
@@ -156,7 +147,7 @@ window.keisan = function() { // グローバルスコープに公開
         const allSubItemsSelected = partsForThisSet.length > 0 && partsForThisSet.every(subItemId => {
             const subItem = itemMap.get(subItemId);
             if (!subItem) return false;
-            
+
             if (subItem.type === "set") {
                 return userCheckedSetIds.has(subItemId) || setsToAutoSelect.has(subItemId);
             } else if (subItem.type === "part") {
@@ -164,17 +155,17 @@ window.keisan = function() { // グローバルスコープに公開
             }
             return false;
         });
-        
+
         if (allSubItemsSelected && !userCheckedSetIds.has(item.id)) {
             setsToAutoSelect.add(item.id);
         }
     });
-    
+
     let finalSelectedSets = new Set([...userCheckedSetIds, ...setsToAutoSelect]);
-    
+
     const allSetIds = [...finalSelectedSets];
     const setsToRemove = new Set();
-    
+
     allSetIds.forEach(setId1 => {
         const partsOfSet1 = getFinalParts(setId1);
         allSetIds.forEach(setId2 => {
@@ -182,7 +173,7 @@ window.keisan = function() { // グローバルスコープに公開
                 const partsOfSet2 = getFinalParts(setId2);
                 const partsOfSet1Set = new Set(partsOfSet1);
                 const partsOfSet2Set = new Set(partsOfSet2);
-                
+
                 if (partsOfSet1.length > partsOfSet2.length && [...partsOfSet2Set].every(partId => partsOfSet1Set.has(partId))) {
                     setsToRemove.add(setId2);
                 }
@@ -206,10 +197,9 @@ window.keisan = function() { // グローバルスコープに公開
             }
         }
     });
-    
+
     const allFinalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
-    
-    // 非活性化リストを構築
+
     const itemsToDisable = new Set();
     items.forEach(item => {
         const isFinalSelection = allFinalSelectedIds.includes(item.id);
@@ -225,20 +215,19 @@ window.keisan = function() { // グローバルスコープに公開
     });
     setsToRemove.forEach(id => itemsToDisable.add(id));
 
-    // チェックボックスの状態とラベルの非活性化を更新
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         const label = document.getElementById(`label_${item.id}`);
 
         if (checkbox) {
             const isFinalSelection = allFinalSelectedIds.includes(item.id);
-            
+
             if (isFinalSelection) {
                 checkbox.checked = true;
             } else {
                 checkbox.checked = false;
             }
-            
+
             if (itemsToDisable.has(item.id)) {
                 checkbox.disabled = true;
                 if (label) label.classList.add('disabled-item');
@@ -259,7 +248,7 @@ window.keisan = function() { // グローバルスコープに公開
             selectedItems.push(item);
         }
     });
-    
+
     const selectedPartsForCopy = [];
     selectedItems.forEach(item => {
         let setDetailText = '';
@@ -270,14 +259,12 @@ window.keisan = function() { // グローバルスコープに公開
             }).filter(name => name !== null && name !== 'デザイン料'))].join("・");
             setDetailText = finalExpandedNames ? `＜${finalExpandedNames}＞` : '';
         } else if (item.id === "part_design_fee") {
-            // デザイン料の場合、テキストに「デザイン料」と金額を含める
             selectedPartsForCopy.push(`${item.name} 税込 ${item.price.toLocaleString()}円`);
-            return; // ここで次のループへ
+            return;
         }
         selectedPartsForCopy.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`);
     });
-    
-    // 全顔+眉毛脱毛セットと全顔セット+眉毛セットの組み合わせの料金を再計算
+
     const hasFullFaceAndEyebrowSet = finalSelectedSets.has('set_fullface_eyebrow');
     if (hasFullFaceAndEyebrowSet) {
         totalPrice = itemMap.get('set_fullface_eyebrow').price;
@@ -302,7 +289,7 @@ window.keisan = function() { // グローバルスコープに公開
         totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
         totalPriceDisplay.classList.remove('guidance-message');
         copyButton.classList.remove("disabled");
-        reservationButton.classList.remove("disabled"); // 予約ボタンを有効化
+        reservationButton.classList.remove("disabled");
         totalTimeInput.value = `${currentTotalHours}時間枠`;
     }
 
@@ -332,11 +319,6 @@ window.copyToClipboard = async function() {
     }
 }
 
-/**
- * メッセージを表示するヘルパー関数
- * @param {string} message - 表示するメッセージ
- * @param {boolean} isError - エラーメッセージかどうか
- */
 function showMessage(message, isError = false) {
     const messageArea = document.getElementById("message-area");
     messageArea.value = message;
@@ -348,9 +330,8 @@ function showMessage(message, isError = false) {
     }
 }
 
-// 初期計算の実行
 document.addEventListener('DOMContentLoaded', () => {
-    keisan(); // ページロード時に一度計算を実行して初期表示を整える
+    keisan();
     document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
         checkbox.addEventListener('change', keisan);
     });
