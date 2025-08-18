@@ -144,62 +144,57 @@ window.keisan = function() { // グローバルスコープに公開
 
     const finalSelectedSets = new Set();
     const finalSelectedParts = new Set();
-    const userSelectedSets = new Set();
-
-    // ユーザーが手動でチェックしたセットメニューを特定
-    checkedItems.forEach(item => {
-        if (item.type === "set") {
-            userSelectedSets.add(item.id);
-        }
-    });
-
-    // 最初に、チェックされた個別パーツからセットを特定
-    items.forEach(item => {
-        if (item.type === "set" && item.parts) {
-            const finalParts = getFinalParts(item.id);
-            const allPartsSelected = finalParts.length > 0 && finalParts.every(partId => {
-                const partCheckbox = document.getElementById(partId);
-                return partCheckbox && partCheckbox.checked;
-            });
-            if (allPartsSelected) {
-                finalSelectedSets.add(item.id);
-            }
-        }
-    });
     
-    // 次に、より大きなセットに組み合わされるセットを特定
+    // 手動で選択されたセットとパーツのIDを収集
+    const userCheckedSetIds = new Set(checkedItems.filter(item => item.type === "set").map(item => item.id));
+    const userCheckedPartIds = new Set(checkedItems.filter(item => item.type === "part").map(item => item.id));
+
+    // 自動選択の候補となるセットを洗い出す
+    let setsToAutoSelect = new Set();
     let combinedSetsAdded;
     do {
         combinedSetsAdded = false;
         items.forEach(item => {
             if (item.type === "set" && item.parts) {
-                if (finalSelectedSets.has(item.id)) return;
-                
                 const partsForThisSet = item.parts;
                 const allSubItemsSelected = partsForThisSet.length > 0 && partsForThisSet.every(subItemId => {
                     const subItem = itemMap.get(subItemId);
                     if (!subItem) return false;
                     
                     if (subItem.type === "set") {
-                        // ここで `userSelectedSets` も考慮する
-                        return finalSelectedSets.has(subItemId) || userSelectedSets.has(subItemId);
+                        return userCheckedSetIds.has(subItemId) || setsToAutoSelect.has(subItemId);
                     } else if (subItem.type === "part") {
-                        const subItemCheckbox = document.getElementById(subItemId);
-                        return subItemCheckbox && subItemCheckbox.checked;
+                        return userCheckedPartIds.has(subItemId);
                     }
                     return false;
                 });
                 
-                if (allSubItemsSelected) {
-                    finalSelectedSets.add(item.id);
+                if (allSubItemsSelected && !userCheckedSetIds.has(item.id) && !setsToAutoSelect.has(item.id)) {
+                    setsToAutoSelect.add(item.id);
                     combinedSetsAdded = true;
                 }
             }
         });
     } while (combinedSetsAdded);
 
-    // ユーザーが手動で選択したセットを最終リストに追加
-    userSelectedSets.forEach(id => finalSelectedSets.add(id));
+    // ユーザーが手動で選択したセットと自動選択されたセットを統合
+    let allSelectedSets = new Set([...userCheckedSetIds, ...setsToAutoSelect]);
+    
+    // より大きなセットに含まれる小さなセットを削除
+    let setsToRemove = new Set();
+    allSelectedSets.forEach(setId1 => {
+        allSelectedSets.forEach(setId2 => {
+            if (setId1 !== setId2) {
+                const item1 = itemMap.get(setId1);
+                if (item1 && item1.parts && item1.parts.includes(setId2)) {
+                    setsToRemove.add(setId2);
+                }
+            }
+        });
+    });
+    setsToRemove.forEach(id => allSelectedSets.delete(id));
+    
+    allSelectedSets.forEach(id => finalSelectedSets.add(id));
 
     // 最終的に選ばれたセットに含まれない、チェック済みのパーツとその他メニューを抽出
     checkedItems.forEach(item => {
@@ -233,7 +228,6 @@ window.keisan = function() { // グローバルスコープに公開
                         const partLabel = document.getElementById(`label_${partId}`);
                         if (partCheckbox && itemMap.get(partId).type === "part") {
                             partCheckbox.disabled = true;
-                            partCheckbox.checked = false;
                             if (partLabel) {
                                 partLabel.classList.add('disabled-item');
                             }
