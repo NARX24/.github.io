@@ -206,14 +206,15 @@ window.keisan = function() { // グローバルスコープに公開
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         const label = document.getElementById(`label_${item.id}`);
+        const isPartOrOther = item.type === "part" || item.type === "other";
 
         if (checkbox) {
             const isFinalSelection = finalSelectedSets.has(item.id) || finalSelectedParts.has(item.id);
-            
+
             if (isFinalSelection) {
                 checkbox.checked = true;
                 if (item.type === "set") {
-                    item.parts.forEach(subItemId => {
+                    getFinalParts(item.id).forEach(subItemId => {
                         const subItemCheckbox = document.getElementById(subItemId);
                         const subItemLabel = document.getElementById(`label_${subItemId}`);
                         if (subItemCheckbox) {
