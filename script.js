@@ -267,8 +267,12 @@ window.keisan = function() { // グローバルスコープに公開
             const finalExpandedNames = [...new Set(getFinalParts(item.id).map(partId => {
                 const partItem = itemMap.get(partId);
                 return partItem ? partItem.name.replace(/（[^）]*）/g, '') : null;
-            }).filter(name => name !== null))].join("・");
+            }).filter(name => name !== null && name !== 'デザイン料'))].join("・");
             setDetailText = finalExpandedNames ? `＜${finalExpandedNames}＞` : '';
+        } else if (item.id === "part_design_fee") {
+            // デザイン料の場合、テキストに「デザイン料」と金額を含める
+            selectedPartsForCopy.push(`${item.name} 税込 ${item.price.toLocaleString()}円`);
+            return; // ここで次のループへ
         }
         selectedPartsForCopy.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`);
     });
@@ -347,5 +351,8 @@ function showMessage(message, isError = false) {
 // 初期計算の実行
 document.addEventListener('DOMContentLoaded', () => {
     keisan(); // ページロード時に一度計算を実行して初期表示を整える
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', keisan);
+    });
     document.getElementById("copyButton").addEventListener("click", copyToClipboard);
 });
