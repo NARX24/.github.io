@@ -155,7 +155,7 @@ window.keisan = function() { // グローバルスコープに公開
             if (!subItem) return false;
             
             if (subItem.type === "set") {
-                return userCheckedSetIds.has(subItemId);
+                return userCheckedSetIds.has(subItemId) || setsToAutoSelect.has(subItemId);
             } else if (subItem.type === "part") {
                 return userCheckedPartIds.has(subItemId);
             }
@@ -205,6 +205,17 @@ window.keisan = function() { // グローバルスコープに公開
     
     const allFinalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
     
+    // 重複を避けるための非活性化リストを構築
+    const itemsToDisable = new Set();
+    finalSelectedSets.forEach(setId => {
+        const setItem = itemMap.get(setId);
+        if (setItem) {
+            getFinalParts(setId).forEach(partId => itemsToDisable.add(partId));
+        }
+    });
+    // セットメニュー自体を非活性化リストに追加
+    setsToRemove.forEach(id => itemsToDisable.add(id));
+
     // チェックボックスの状態とラベルの非活性化を更新
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
@@ -212,22 +223,22 @@ window.keisan = function() { // グローバルスコープに公開
 
         if (checkbox) {
             const isFinalSelection = allFinalSelectedIds.includes(item.id);
-            const isContainedInLargerSet = !isFinalSelection && finalSelectedSets.size > 0 && [...finalSelectedSets].some(setId => {
-                return getFinalParts(setId).includes(item.id);
-            });
+            const shouldBeDisabled = itemsToDisable.has(item.id);
 
             if (isFinalSelection) {
                 checkbox.checked = true;
                 if (label) label.classList.remove('disabled-item');
+                checkbox.disabled = false;
             } else {
                 checkbox.checked = false;
             }
-
-            if (isContainedInLargerSet) {
-                checkbox.disabled = true;
-                if (label) label.classList.add('disabled-item');
-            } else {
-                checkbox.disabled = false;
+            
+            if (shouldBeDisabled) {
+                 checkbox.disabled = true;
+                 if (label) label.classList.add('disabled-item');
+            } else if (!isFinalSelection) {
+                 checkbox.disabled = false;
+                 if (label) label.classList.remove('disabled-item');
             }
         }
     });
