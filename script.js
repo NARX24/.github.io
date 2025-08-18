@@ -134,7 +134,6 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
-    const selectedIds = new Set();
     const checkedItems = [];
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
@@ -145,8 +144,16 @@ window.keisan = function() { // グローバルスコープに公開
 
     const finalSelectedSets = new Set();
     const finalSelectedParts = new Set();
-    
-    // 最初のイテレーションで、全選択されたパーツからセットを特定
+    const userSelectedSets = new Set();
+
+    // ユーザーが手動でチェックしたセットメニューを特定
+    checkedItems.forEach(item => {
+        if (item.type === "set") {
+            userSelectedSets.add(item.id);
+        }
+    });
+
+    // 最初に、チェックされた個別パーツからセットを特定
     items.forEach(item => {
         if (item.type === "set" && item.parts) {
             const finalParts = getFinalParts(item.id);
@@ -154,13 +161,13 @@ window.keisan = function() { // グローバルスコープに公開
                 const partCheckbox = document.getElementById(partId);
                 return partCheckbox && partCheckbox.checked;
             });
-
             if (allPartsSelected) {
                 finalSelectedSets.add(item.id);
             }
         }
     });
     
+    // 次に、より大きなセットに組み合わされるセットを特定
     let combinedSetsAdded;
     do {
         combinedSetsAdded = false;
@@ -174,7 +181,8 @@ window.keisan = function() { // グローバルスコープに公開
                     if (!subItem) return false;
                     
                     if (subItem.type === "set") {
-                        return finalSelectedSets.has(subItemId);
+                        // ここで `userSelectedSets` も考慮する
+                        return finalSelectedSets.has(subItemId) || userSelectedSets.has(subItemId);
                     } else if (subItem.type === "part") {
                         const subItemCheckbox = document.getElementById(subItemId);
                         return subItemCheckbox && subItemCheckbox.checked;
@@ -190,6 +198,10 @@ window.keisan = function() { // グローバルスコープに公開
         });
     } while (combinedSetsAdded);
 
+    // ユーザーが手動で選択したセットを最終リストに追加
+    userSelectedSets.forEach(id => finalSelectedSets.add(id));
+
+    // 最終的に選ばれたセットに含まれない、チェック済みのパーツとその他メニューを抽出
     checkedItems.forEach(item => {
         if (item.type === "part") {
             let isContainedInSet = false;
@@ -207,10 +219,13 @@ window.keisan = function() { // グローバルスコープに公開
         }
     });
 
+    // チェックボックスの状態を更新
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         if (checkbox) {
-            if (finalSelectedSets.has(item.id) || finalSelectedParts.has(item.id)) {
+            const isFinalSelection = finalSelectedSets.has(item.id) || finalSelectedParts.has(item.id);
+            
+            if (isFinalSelection) {
                 checkbox.checked = true;
                 if (item.type === "set" && item.parts) {
                     getFinalParts(item.id).forEach(partId => {
@@ -230,9 +245,11 @@ window.keisan = function() { // グローバルスコープに公開
             }
         }
     });
-
+    
     const finalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
-    finalSelectedIds.forEach(id => {
+    const uniqueFinalSelectedIds = [...new Set(finalSelectedIds)];
+
+    uniqueFinalSelectedIds.forEach(id => {
         const item = itemMap.get(id);
         if (item) {
             totalTime += item.time;
