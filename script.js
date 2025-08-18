@@ -155,7 +155,7 @@ window.keisan = function() { // グローバルスコープに公開
             if (!subItem) return false;
             
             if (subItem.type === "set") {
-                return userCheckedSetIds.has(subItemId) || setsToAutoSelect.has(subItemId);
+                return userCheckedSetIds.has(subItemId);
             } else if (subItem.type === "part") {
                 return userCheckedPartIds.has(subItemId);
             }
@@ -202,37 +202,37 @@ window.keisan = function() { // グローバルスコープに公開
             finalSelectedParts.add(item.id);
         }
     });
-
+    
+    const allFinalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
+    
+    // チェックボックスの状態とラベルの非活性化を更新
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
         const label = document.getElementById(`label_${item.id}`);
-        const isPartOrOther = item.type === "part" || item.type === "other";
 
         if (checkbox) {
-            const isFinalSelection = finalSelectedSets.has(item.id) || finalSelectedParts.has(item.id);
+            const isFinalSelection = allFinalSelectedIds.includes(item.id);
+            const isContainedInLargerSet = !isFinalSelection && finalSelectedSets.size > 0 && [...finalSelectedSets].some(setId => {
+                return getFinalParts(setId).includes(item.id);
+            });
 
             if (isFinalSelection) {
                 checkbox.checked = true;
-                if (item.type === "set") {
-                    getFinalParts(item.id).forEach(subItemId => {
-                        const subItemCheckbox = document.getElementById(subItemId);
-                        const subItemLabel = document.getElementById(`label_${subItemId}`);
-                        if (subItemCheckbox) {
-                            subItemCheckbox.disabled = true;
-                        }
-                        if (subItemLabel) {
-                            subItemLabel.classList.add('disabled-item');
-                        }
-                    });
-                }
+                if (label) label.classList.remove('disabled-item');
             } else {
                 checkbox.checked = false;
+            }
+
+            if (isContainedInLargerSet) {
+                checkbox.disabled = true;
+                if (label) label.classList.add('disabled-item');
+            } else {
+                checkbox.disabled = false;
             }
         }
     });
     
-    const finalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
-    const uniqueFinalSelectedIds = [...new Set(finalSelectedIds)];
+    const uniqueFinalSelectedIds = [...new Set(allFinalSelectedIds)];
 
     uniqueFinalSelectedIds.forEach(id => {
         const item = itemMap.get(id);
@@ -309,9 +309,9 @@ window.copyToClipboard = async function() {
         showMessage(`選択内容がコピーされました！\nご予約メニュー【${currentTotalHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`);
         reservationButton.classList.remove("disabled");
     } catch (err) {
-        console.error('クリップボードへのコピーに失敗しました:', err);
-        showMessage("クリップボードへのコピーに失敗しました。手動でコピーしてください。", true);
-        reservationButton.classList.add("disabled");
+            console.error('クリップボードへのコピーに失敗しました:', err);
+            showMessage("クリップボードへのコピーに失敗しました。手動でコピーしてください。", true);
+            reservationButton.classList.add("disabled");
     }
 }
 
