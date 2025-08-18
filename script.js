@@ -3,7 +3,7 @@ const items = [
     // ■セットメニュー■
     { id: "set_eyebrow", name: "眉毛セット", time: 40, price: 11000, parts: ["part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullface", name: "全顔セット", time: 65, price: 13200, parts: ["part_nose_under", "part_mouth_under", "part_cheek", "part_face_line", "part_neck"], type: "set" },
-    { id: "set_fullface_eyebrow", name: "全顔+眉毛脱毛セット", time: 105, price: 22000, parts: ["set_fullface", "set_eyebrow"], type: "set" },
+    { id: "set_fullface_eyebrow", name: "全顔+眉毛脱毛セット", time: 105, price: 22000, parts: ["set_fullface", "part_eyebrow_upper", "part_eyebrow_lower", "part_eyebrow_middle", "part_design_fee"], type: "set" },
     { id: "set_fullbody_all", name: "全身オール（顔、VIO含む）", time: 270, price: 52800, parts: ["set_upperbody", "set_lowerbody"], type: "set" },
     { id: "set_fullbody_noface", name: "顔なし全身", time: 200, price: 41800, parts: ["part_armpit", "part_nape", "part_back_upper", "part_back_lower", "part_chest_nipple", "part_abdomen_navel", "part_elbow_upper", "part_elbow_lower", "part_hand_finger", "part_v_line", "part_i_line", "part_o_line", "part_buttocks", "part_knee_upper", "part_knee_lower", "part_foot_toe"], type: "set" },
     { id: "set_upperbody", name: "上半身セット", time: 170, price: 30800, parts: ["set_fullface", "part_armpit", "part_chest_nipple", "part_abdomen_navel", "part_nape", "part_back_upper", "part_back_lower", "part_elbow_upper", "part_elbow_lower", "part_hand_finger"], type: "set" },
@@ -55,7 +55,7 @@ const items = [
     { id: "part_earlobe", name: "耳たぶ", time: 13, price: 4400, type: "part" },
     { id: "part_nipple", name: "乳輪周り", time: 10, price: 4400, type: "part" },
     { id: "part_navel_under", name: "ヘソ下", time: 10, price: 4400, type: "part" },
-    { id: "part_design_fee", name: "デザイン料", time: 0, price: 1100, type: "part" },
+    { id: "part_design_fee", name: "デザイン料", time: 0, price: 0, type: "part" },
 
     // ■その他メニュー■
     { id: "other_lala_peel", name: "ララピール", time: 90, price: 12100, type: "other" },
@@ -64,14 +64,22 @@ const items = [
     { id: "other_derma_skin", name: "ダーマインジェクション（肌育ケア）", time: 50, price: 22000, type: "other" }
 ];
 
-let copyText = "";
-let currentTotalHours = "0";
+let copyText = ""; // コピーするテキストを格納する変数
+let currentTotalHours = "0"; // 合計時間を格納する変数
 
+// 全てのアイテムをIDで参照できるようにするマップ
 const itemMap = new Map();
 items.forEach(item => {
     itemMap.set(item.id, item);
 });
 
+/**
+ * 指定されたアイテムIDが最終的に展開される個別パーツのIDリストを再帰的に取得する関数。
+ * 無限ループを防止します。
+ * @param {string} itemId - 展開したいアイテムのID。
+ * @param {Set<string>} currentPath - 現在の再帰呼び出しパスで訪問済みのアイテムIDを追跡するためのSet。無限ループ防止用。
+ * @returns {Array<string>} 最終的に含まれる個別パーツのIDの配列。
+ */
 function getFinalParts(itemId, currentPath = new Set()) {
     if (currentPath.has(itemId)) {
         return [];
@@ -90,10 +98,7 @@ function getFinalParts(itemId, currentPath = new Set()) {
         finalParts.push(itemId);
     } else if (item.type === "set" && item.parts && item.parts.length > 0) {
         item.parts.forEach(partId => {
-            const subItem = itemMap.get(partId);
-            if (subItem) {
-                finalParts.push(...getFinalParts(partId, currentPath));
-            }
+            finalParts.push(...getFinalParts(partId, currentPath));
         });
     } else if (item.type === "part") {
         finalParts.push(itemId);
@@ -103,7 +108,7 @@ function getFinalParts(itemId, currentPath = new Set()) {
     return finalParts;
 }
 
-window.keisan = function() {
+window.keisan = function() { // グローバルスコープに公開
     let totalTime = 0;
     let totalPrice = 0;
     const selectedItems = [];
@@ -116,15 +121,16 @@ window.keisan = function() {
     messageArea.style.display = "none";
     messageArea.classList.remove('error');
     messageArea.value = "";
-
+    
+    // 計算ロジックの前に、**全ての**チェックボックスを有効化する
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
-        const label = document.getElementById(`label_${item.id}`);
         if (checkbox) {
             checkbox.disabled = false;
-        }
-        if (label) {
-            label.classList.remove('disabled-item');
+            const label = document.getElementById(`label_${item.id}`);
+            if (label) {
+                label.classList.remove('disabled-item');
+            }
         }
     });
 
@@ -136,18 +142,20 @@ window.keisan = function() {
         }
     });
 
+    // ユーザーがチェックしたメニューを分類
     const userCheckedSetIds = new Set(checkedItems.filter(item => item.type === "set").map(item => item.id));
     const userCheckedPartIds = new Set(checkedItems.filter(item => item.type === "part").map(item => item.id));
 
+    // 自動選択の候補となるセットを洗い出す
     let setsToAutoSelect = new Set();
-    const sortedSets = items.filter(item => item.type === "set").sort((a, b) => getFinalParts(b.id).length - getFinalParts(a.id).length);
+    const sortedSets = items.filter(item => item.type === "set").sort((a, b) => getFinalParts(b).length - getFinalParts(a).length);
 
     sortedSets.forEach(item => {
         const partsForThisSet = item.parts;
         const allSubItemsSelected = partsForThisSet.length > 0 && partsForThisSet.every(subItemId => {
             const subItem = itemMap.get(subItemId);
             if (!subItem) return false;
-
+            
             if (subItem.type === "set") {
                 return userCheckedSetIds.has(subItemId) || setsToAutoSelect.has(subItemId);
             } else if (subItem.type === "part") {
@@ -155,26 +163,24 @@ window.keisan = function() {
             }
             return false;
         });
-
+        
         if (allSubItemsSelected && !userCheckedSetIds.has(item.id)) {
             setsToAutoSelect.add(item.id);
         }
     });
-
+    
+    // ユーザーが手動で選択したセットと自動選択されたセットを統合し、より大きなセットを優先する
     let finalSelectedSets = new Set([...userCheckedSetIds, ...setsToAutoSelect]);
-
+    
     const allSetIds = [...finalSelectedSets];
     const setsToRemove = new Set();
-
+    
+    // より大きなセットに含まれる小さなセットを削除
     allSetIds.forEach(setId1 => {
-        const partsOfSet1 = getFinalParts(setId1);
         allSetIds.forEach(setId2 => {
             if (setId1 !== setId2) {
-                const partsOfSet2 = getFinalParts(setId2);
-                const partsOfSet1Set = new Set(partsOfSet1);
-                const partsOfSet2Set = new Set(partsOfSet2);
-
-                if (partsOfSet1.length > partsOfSet2.length && [...partsOfSet2Set].every(partId => partsOfSet1Set.has(partId))) {
+                const item1 = itemMap.get(setId1);
+                if (item1 && item1.parts && item1.parts.includes(setId2)) {
                     setsToRemove.add(setId2);
                 }
             }
@@ -183,8 +189,9 @@ window.keisan = function() {
     setsToRemove.forEach(id => finalSelectedSets.delete(id));
 
     const finalSelectedParts = new Set();
+    // 最終的に選ばれたセットに含まれない、チェック済みのパーツとその他メニューを抽出
     checkedItems.forEach(item => {
-        if (item.type === "part" || item.type === "other") {
+        if (item.type === "part") {
             let isContainedInSet = false;
             for (const setId of finalSelectedSets) {
                 if (getFinalParts(setId).includes(item.id)) {
@@ -195,50 +202,40 @@ window.keisan = function() {
             if (!isContainedInSet) {
                 finalSelectedParts.add(item.id);
             }
+        } else if (item.type === "other") {
+            finalSelectedParts.add(item.id);
         }
     });
 
-    const allFinalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
-
-    const itemsToDisable = new Set();
-    items.forEach(item => {
-        const isFinalSelection = allFinalSelectedIds.includes(item.id);
-        if (!isFinalSelection) {
-            const isContainedInFinalSet = finalSelectedSets.size > 0 && [...finalSelectedSets].some(setId => {
-                const finalParts = getFinalParts(setId);
-                return finalParts.includes(item.id);
-            });
-            if (isContainedInFinalSet) {
-                itemsToDisable.add(item.id);
-            }
-        }
-    });
-    setsToRemove.forEach(id => itemsToDisable.add(id));
-
+    // チェックボックスの状態を更新
     items.forEach(item => {
         const checkbox = document.getElementById(item.id);
-        const label = document.getElementById(`label_${item.id}`);
-
         if (checkbox) {
-            const isFinalSelection = allFinalSelectedIds.includes(item.id);
-
+            const isFinalSelection = finalSelectedSets.has(item.id) || finalSelectedParts.has(item.id);
+            
             if (isFinalSelection) {
                 checkbox.checked = true;
+                if (item.type === "set") {
+                    item.parts.forEach(subItemId => {
+                        const subItemCheckbox = document.getElementById(subItemId);
+                        const subItemLabel = document.getElementById(`label_${subItemId}`);
+                        if (subItemCheckbox) {
+                            subItemCheckbox.disabled = true;
+                            if (subItemLabel) {
+                                subItemLabel.classList.add('disabled-item');
+                            }
+                        }
+                    });
+                }
             } else {
                 checkbox.checked = false;
             }
-
-            if (itemsToDisable.has(item.id)) {
-                checkbox.disabled = true;
-                if (label) label.classList.add('disabled-item');
-            } else {
-                checkbox.disabled = false;
-                if (label) label.classList.remove('disabled-item');
-            }
         }
     });
-
-    const uniqueFinalSelectedIds = [...new Set(allFinalSelectedIds)];
+    
+    // 料金と時間の再計算
+    const finalSelectedIds = [...finalSelectedSets, ...finalSelectedParts];
+    const uniqueFinalSelectedIds = [...new Set(finalSelectedIds)];
 
     uniqueFinalSelectedIds.forEach(id => {
         const item = itemMap.get(id);
@@ -248,28 +245,31 @@ window.keisan = function() {
             selectedItems.push(item);
         }
     });
-
+    
     const selectedPartsForCopy = [];
     selectedItems.forEach(item => {
         let setDetailText = '';
-        if (item.type === "set") {
-            const finalExpandedNames = [...new Set(getFinalParts(item.id).map(partId => {
-                const partItem = itemMap.get(partId);
-                return partItem ? partItem.name.replace(/（[^）]*）/g, '') : null;
-            }).filter(name => name !== null && name !== 'デザイン料'))].join("・");
-            setDetailText = finalExpandedNames ? `＜${finalExpandedNames}＞` : '';
-        } else if (item.id === "part_design_fee") {
-            selectedPartsForCopy.push(`${item.name} 税込 ${item.price.toLocaleString()}円`);
-            return;
+        if (item.type === "set" && item.parts && item.parts.length > 0) {
+            const finalExpandedNames = [];
+            item.parts.forEach(partId => {
+                const subItem = itemMap.get(partId);
+                if (subItem) {
+                    if (subItem.type === "set") {
+                        getFinalParts(subItem.id).forEach(nestedPartId => {
+                            const nestedSubItem = itemMap.get(nestedPartId);
+                            if (nestedSubItem && nestedSubItem.name) {
+                                finalExpandedNames.push(nestedSubItem.name.replace(/（[^）]*）/g, ''));
+                            }
+                        });
+                    } else if (subItem.type === "part" && subItem.name) {
+                        finalExpandedNames.push(subItem.name.replace(/（[^）]*）/g, ''));
+                    }
+                }
+            });
+            setDetailText = finalExpandedNames.length > 0 ? `＜${[...new Set(finalExpandedNames)].join("・")}＞` : '';
         }
         selectedPartsForCopy.push(`${item.name}(${item.time}分) 税込 ${item.price.toLocaleString()}円${setDetailText ? ' ' + setDetailText : ''}`);
     });
-
-    const hasFullFaceAndEyebrowSet = finalSelectedSets.has('set_fullface_eyebrow');
-    if (hasFullFaceAndEyebrowSet) {
-        totalPrice = itemMap.get('set_fullface_eyebrow').price;
-        totalTime = itemMap.get('set_fullface_eyebrow').time;
-    }
 
     const hours = Math.ceil(totalTime / 30) * 0.5;
     if (hours % 1 === 0) {
@@ -289,7 +289,6 @@ window.keisan = function() {
         totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
         totalPriceDisplay.classList.remove('guidance-message');
         copyButton.classList.remove("disabled");
-        reservationButton.classList.remove("disabled");
         totalTimeInput.value = `${currentTotalHours}時間枠`;
     }
 
@@ -313,12 +312,17 @@ window.copyToClipboard = async function() {
         showMessage(`選択内容がコピーされました！\nご予約メニュー【${currentTotalHours}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。`);
         reservationButton.classList.remove("disabled");
     } catch (err) {
-            console.error('クリップボードへのコピーに失敗しました:', err);
-            showMessage("クリップボードへのコピーに失敗しました。手動でコピーしてください。", true);
-            reservationButton.classList.add("disabled");
+        console.error('クリップボードへのコピーに失敗しました:', err);
+        showMessage("クリップボードへのコピーに失敗しました。手動でコピーしてください。", true);
+        reservationButton.classList.add("disabled");
     }
 }
 
+/**
+ * メッセージを表示するヘルパー関数
+ * @param {string} message - 表示するメッセージ
+ * @param {boolean} isError - エラーメッセージかどうか
+ */
 function showMessage(message, isError = false) {
     const messageArea = document.getElementById("message-area");
     messageArea.value = message;
@@ -330,10 +334,8 @@ function showMessage(message, isError = false) {
     }
 }
 
+// 初期計算の実行
 document.addEventListener('DOMContentLoaded', () => {
-    keisan();
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', keisan);
-    });
+    keisan(); // ページロード時に一度計算を実行して初期表示を整える
     document.getElementById("copyButton").addEventListener("click", copyToClipboard);
 });
