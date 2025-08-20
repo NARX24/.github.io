@@ -71,20 +71,29 @@ document.addEventListener('DOMContentLoaded', (event) => {
             checkbox.disabled = false;
         });
 
-        // 選択されたセットメニューに含まれるパーツを無効化
-        const checkedSetMenuIds = new Set();
-        document.querySelectorAll('input[id^="set_"]:checked').forEach(checkbox => {
-            checkedSetMenuIds.add(checkbox.id);
-        });
-
+        // 選択されたパーツからセットメニューを自動選択
+        const checkedPartIds = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
+        
+        for (const setId in menuData) {
+            if (setId.startsWith('set_') && menuData[setId].parts) {
+                const partsInSet = menuData[setId].parts;
+                const isSetSelected = partsInSet.every(partId => checkedPartIds.has(partId));
+                const setCheckbox = document.getElementById(setId);
+                if (setCheckbox) {
+                    setCheckbox.checked = isSetSelected;
+                }
+            }
+        }
+        
         // セットメニューとそれに含まれるパーツを相互に排他的にする
+        const checkedSetMenuIds = new Set(Array.from(document.querySelectorAll('input[id^="set_"]:checked')).map(cb => cb.id));
+
         checkedSetMenuIds.forEach(setId => {
             const set = findMenuDataById(setId);
             if (set && set.parts) {
                 set.parts.forEach(partId => {
                     const partCheckbox = document.getElementById(partId);
                     if (partCheckbox) {
-                        partCheckbox.checked = false;
                         partCheckbox.disabled = true;
                     }
                 });
@@ -160,6 +169,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 });
         };
     };
+
+    // すべてのチェックボックスにイベントリスナーを追加
+    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+        checkbox.addEventListener('change', window.keisan);
+    });
 
     // 初期状態の計算を実行
     window.keisan();
