@@ -71,16 +71,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
             checkbox.disabled = false;
         });
 
+        // 選択されたセットメニューに含まれるパーツを無効化
         const checkedSetMenuIds = new Set();
-        // 選択されたセットメニューをまず収集
-        for (const id in menuData) {
-            const checkbox = document.getElementById(id);
-            if (checkbox && id.startsWith('set_') && checkbox.checked) {
-                checkedSetMenuIds.add(id);
-            }
-        }
-        
-        // セットメニューに含まれるパーツと、他のセットメニューを無効化
+        document.querySelectorAll('input[id^="set_"]:checked').forEach(checkbox => {
+            checkedSetMenuIds.add(checkbox.id);
+        });
+
+        // セットメニューとそれに含まれるパーツを相互に排他的にする
         checkedSetMenuIds.forEach(setId => {
             const set = findMenuDataById(setId);
             if (set && set.parts) {
@@ -92,14 +89,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     }
                 });
             }
-            // 他のすべてのセットメニューも無効化
-            const allSetMenus = document.querySelectorAll('input[id^="set_"]');
-            allSetMenus.forEach(setCheckbox => {
-                if (setCheckbox.id !== setId) {
-                    setCheckbox.checked = false;
-                    setCheckbox.disabled = true;
-                }
-            });
         });
 
         // 最終的な計算
