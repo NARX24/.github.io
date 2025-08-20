@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         'set_vio_buttocks': { name: 'VIO+臀部（おしり）セット', time: 60, price: 20900, parts: ['set_vio', 'part_buttocks'] },
         'set_navel_vio': { name: 'ヘソ下+VIOセット', time: 55, price: 18700, parts: ['part_navel_under', 'set_vio'] },
         'set_chest_abdomen': { name: '胸＋腹部セット', time: 35, price: 9900, parts: ['part_chest_nipple', 'part_abdomen_navel'] },
-        'set_arms_legs': { name: '両腕+両足セット', time: 125, price: 28600, parts: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
+        'set_arms_legs': { name: '両腕+両足セット', time: 125, price: 28600, parts: ['set_arms', 'set_legs'] },
         'set_arms': { name: '両腕セット', time: 65, price: 17600, parts: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
         'set_legs': { name: '両足セット', time: 65, price: 17600, parts: ['part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
         'set_ear_whole': { name: '耳全体（耳珠、耳たぶ含む）', time: 25, price: 8800, parts: ['part_tragus', 'part_earlobe'] },
@@ -60,10 +60,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
     const getContainedParts = (setId) => {
         const parts = new Set();
         const queue = [setId];
+        const visitedSets = new Set();
         while (queue.length > 0) {
             const currentId = queue.shift();
             const currentData = findMenuDataById(currentId);
-            if (currentData && currentData.parts) {
+            if (currentData && currentData.parts && !visitedSets.has(currentId)) {
+                visitedSets.add(currentId);
                 currentData.parts.forEach(partId => {
                     const partData = findMenuDataById(partId);
                     if (partData && partData.isPart) {
@@ -85,29 +87,29 @@ document.addEventListener('DOMContentLoaded', (event) => {
         .sort((a, b) => getContainedParts(b).length - getContainedParts(a).length);
 
     window.keisan = function() {
-        // 1. 全てのチェックボックスをリセット
-        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            cb.disabled = false;
-        });
+        const initialCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
+        const initialCheckedSets = new Set(Array.from(document.querySelectorAll('input[id^="set_"]:checked')).map(cb => cb.id));
+        const initialCheckedOthers = new Set(Array.from(document.querySelectorAll('input[id^="other_"]:checked')).map(cb => cb.id));
 
-        const currentCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
+        // 1. 自動選択ロジックの実行
         let selectedSetId = null;
-        
-        // 2. 自動選択ロジックの実行
         for (const setId of allSetsSorted) {
             const partsInSet = getContainedParts(setId);
-            if (partsInSet.length > 0 && partsInSet.every(partId => currentCheckedParts.has(partId))) {
+            if (partsInSet.length > 0 && partsInSet.every(partId => initialCheckedParts.has(partId))) {
                 selectedSetId = setId;
                 break;
             }
         }
 
-        // 3. セットのチェックボックスの状態を更新
+        // 2. チェックボックスの状態を更新
         document.querySelectorAll('input[id^="set_"]').forEach(cb => {
             cb.checked = (cb.id === selectedSetId);
         });
-        
-        // 4. 計算対象の決定と最終的なリストの作成
+        document.querySelectorAll('input[id^="part_"]').forEach(cb => {
+            cb.checked = initialCheckedParts.has(cb.id);
+        });
+
+        // 3. 計算対象の決定と最終的なリストの作成
         let totalTime = 0;
         let totalPrice = 0;
         const selectedMenus = [];
@@ -146,15 +148,28 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         });
         
-        // 5. セットに含まれるパーツを無効化
-        processedIds.forEach(partId => {
-            const partCheckbox = document.getElementById(partId);
-            if (partCheckbox) {
-                partCheckbox.disabled = true;
+        // 4. セットに含まれるパーツを無効化
+        document.querySelectorAll('input[id^="part_"]').forEach(cb => {
+            const partsInSelectedSet = selectedSetId ? getContainedParts(selectedSetId) : [];
+            if (partsInSelectedSet.includes(cb.id)) {
+                cb.disabled = true;
+                cb.checked = false; // 無効化されたパーツのチェックを外す
+            } else {
+                cb.disabled = false;
+            }
+        });
+        // セットメニュー自体も手動選択不可にする
+        document.querySelectorAll('input[id^="set_"]').forEach(cb => {
+            cb.disabled = true;
+        });
+        // セットに含まれていないパーツは手動で選択できる
+        document.querySelectorAll('input[id^="part_"]').forEach(cb => {
+            if (!processedIds.has(cb.id)) {
+                cb.disabled = false;
             }
         });
 
-        // 6. 表示の更新とコピー機能
+        // 5. 表示の更新とコピー機能
         const roundedTime = Math.ceil(totalTime / 30) * 30;
         const totalHours = roundedTime / 60;
         
