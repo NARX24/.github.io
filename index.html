@@ -1,172 +1,217 @@
-document.addEventListener('DOMContentLoaded', (event) => {
-    // メニュー項目と関連するパーツのデータを定義
-    const menuData = {
-        // セットメニュー
-        'set_eyebrow': { name: '眉毛セット', time: 40, price: 11000, parts: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'] },
-        'set_fullface': { name: '全顔セット', time: 65, price: 13200, parts: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'] },
-        'set_fullface_eyebrow': { name: '全顔+眉毛脱毛セット', time: 105, price: 22000, parts: ['set_fullface', 'part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'] },
-        'set_fullbody_all': { name: '全身オール（顔、VIO含む）', time: 270, price: 52800, parts: ['set_upperbody', 'set_lowerbody'] },
-        'set_fullbody_noface': { name: '顔なし全身', time: 200, price: 41800, parts: ['part_armpit', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_chest_nipple', 'part_abdomen_navel', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_v_line', 'part_i_line', 'part_o_line', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
-        'set_upperbody': { name: '上半身セット', time: 170, price: 30800, parts: ['set_fullface', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
-        'set_lowerbody': { name: '下半身セット', time: 150, price: 30800, parts: ['set_vio', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
-        'set_vio': { name: 'VIOセット', time: 50, price: 16500, parts: ['part_v_line', 'part_i_line', 'part_o_line'] },
-        'set_fullface_vio': { name: '全顔+VIOセット', time: 100, price: 27500, parts: ['set_fullface', 'set_vio'] },
-        'set_vio_buttocks': { name: 'VIO+臀部（おしり）セット', time: 60, price: 20900, parts: ['set_vio', 'part_buttocks'] },
-        'set_navel_vio': { name: 'ヘソ下+VIOセット', time: 55, price: 18700, parts: ['part_navel_under', 'set_vio'] },
-        'set_chest_abdomen': { name: '胸＋腹部セット', time: 35, price: 9900, parts: ['part_chest_nipple', 'part_abdomen_navel'] },
-        'set_arms_legs': { name: '両腕+両足セット', time: 125, price: 28600, parts: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
-        'set_arms': { name: '両腕セット', time: 65, price: 17600, parts: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
-        'set_legs': { name: '両足セット', time: 65, price: 17600, parts: ['part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
-        'set_ear_whole': { name: '耳全体（耳珠、耳たぶ含む）', time: 25, price: 8800, parts: ['part_tragus', 'part_earlobe'] },
-        // パーツメニュー
-        'part_nose_under': { name: '鼻下', time: 16, price: 4400, isPart: true },
-        'part_mouth_under': { name: '口下', time: 16, price: 4400, isPart: true },
-        'part_cheek': { name: '頬', time: 16, price: 4400, isPart: true },
-        'part_face_line': { name: 'フェイスライン', time: 16, price: 4400, isPart: true },
-        'part_neck': { name: '首', time: 16, price: 4400, isPart: true },
-        'part_nape': { name: 'うなじ', time: 16, price: 4400, isPart: true },
-        'part_armpit': { name: '脇', time: 13, price: 4400, isPart: true },
-        'part_chest_nipple': { name: '胸（乳輪周り含む）', time: 16, price: 6600, isPart: true },
-        'part_abdomen_navel': { name: '腹部（ヘソ下含む）', time: 16, price: 6600, isPart: true },
-        'part_back_upper': { name: '背中上', time: 16, price: 6600, isPart: true },
-        'part_back_lower': { name: '背中下', time: 16, price: 6600, isPart: true },
-        'part_buttocks': { name: '臀部（おしり）', time: 16, price: 6600, isPart: true },
-        'part_elbow_upper': { name: '肘上', time: 16, price: 6600, isPart: true },
-        'part_elbow_lower': { name: '肘下', time: 18, price: 6600, isPart: true },
-        'part_hand_finger': { name: '手の甲+指', time: 12, price: 4400, isPart: true },
-        'part_knee_upper': { name: '膝上', time: 35, price: 8800, isPart: true },
-        'part_knee_lower': { name: '膝下', time: 35, price: 8800, isPart: true },
-        'part_foot_toe': { name: '足の甲＋指', time: 12, price: 4400, isPart: true },
-        'part_v_line': { name: 'Vライン', time: 16, price: 7700, isPart: true },
-        'part_i_line': { name: 'Iライン', time: 20, price: 7700, isPart: true },
-        'part_o_line': { name: 'Oライン', time: 16, price: 5500, isPart: true },
-        'part_forehead': { name: 'おでこ', time: 13, price: 4400, isPart: true },
-        'part_eyebrow_upper': { name: '眉上', time: 13, price: 4400, isPart: true },
-        'part_eyebrow_lower': { name: '眉下', time: 13, price: 6600, isPart: true },
-        'part_eyebrow_middle': { name: '眉中', time: 13, price: 2200, isPart: true },
-        'part_small_nose': { name: '小鼻', time: 13, price: 4400, isPart: true },
-        'part_nose_hair': { name: '鼻毛', time: 20, price: 4400, isPart: true },
-        'part_tragus': { name: '耳珠', time: 13, price: 3300, isPart: true },
-        'part_earlobe': { name: '耳たぶ', time: 13, price: 4400, isPart: true },
-        'part_nipple': { name: '乳輪周り', time: 10, price: 4400, isPart: true },
-        'part_navel_under': { name: 'ヘソ下', time: 10, price: 4400, isPart: true },
-        'part_design_fee': { name: 'デザイン料', time: 0, price: 1100, isPart: true },
-        // その他メニュー
-        'other_lala_peel': { name: 'ララピール', time: 90, price: 12100 },
-        'other_face_correction': { name: '小顔矯正術', time: 90, price: 22000 },
-        'other_derma_scalp': { name: 'ダーマインジェクション（スカルプケア）', time: 50, price: 22000 },
-        'other_derma_skin': { name: 'ダーマインジェクション（肌育ケア）', time: 50, price: 22000 },
-    };
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>中島式メンズ脱毛サロン NARX【ナークス】 - 料金シミュレーター</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="favicon.png" type="image/png">
+</head>
+<body>
+    <div id="form-container">
+        <div id="scroll-container">
+            <b class="menu-category-title">セットメニュー</b>
+            <table>
+                <tr>
+                    <td><input type="checkbox" id="set_eyebrow" onchange="keisan()"> 眉毛セット(40分) 税込 11,000円<span class="set-detail">＜眉上・眉下・眉中・デザイン料＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_fullface" onchange="keisan()"> 全顔セット(65分) 税込 13,200円<span class="set-detail">＜鼻下・口下・頬・フェイスライン・首＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_fullface_eyebrow" onchange="keisan()"> 全顔+眉毛脱毛セット(105分) 税込 22,000円<span class="set-detail">＜全顔セット・眉上・眉下・眉中・デザイン料＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_fullbody_all" onchange="keisan()"> 全身オール（顔、VIO含む）(270分) 税込 52,800円<span class="set-detail">＜上半身セット・下半身セット＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_fullbody_noface" onchange="keisan()"> 顔なし全身(200分) 税込 41,800円<span class="set-detail">＜脇・うなじ・背中上・背中下・胸（乳輪周り含む）・腹部（ヘソ下含む）・肘上・肘下・手の甲＋指・Vライン・Iライン・Oライン・臀部（おしり）・膝上・膝下・足の甲＋指＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_upperbody" onchange="keisan()"> 上半身セット(170分) 税込 30,800円<span class="set-detail">＜全顔セット・脇・胸（乳輪周り含む）・腹部（ヘソ下含む）・うなじ・背中上・背中下・肘上・肘下・手の甲＋指＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_lowerbody" onchange="keisan()"> 下半身セット(150分) 税込 30,800円<span class="set-detail">＜VIOセット・臀部（おしり）・膝上・膝下・足の甲＋指＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_vio" onchange="keisan()"> VIOセット(50分) 税込 16,500円<span class="set-detail">＜Vライン・Iライン・Oライン＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_fullface_vio" onchange="keisan()"> 全顔+VIOセット(100分) 税込 27,500円<span class="set-detail">＜全顔セット・VIOセット＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_vio_buttocks" onchange="keisan()"> VIO+臀部（おしり）セット(60分) 税込 20,900円<span class="set-detail">＜VIOセット・臀部（おしり）＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_navel_vio" onchange="keisan()"> ヘソ下+VIOセット(55分) 税込 18,700円<span class="set-detail">＜ヘソ下・VIOセット＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_chest_abdomen" onchange="keisan()"> 胸＋腹部セット(35分) 税込 9,900円<span class="set-detail">＜胸（乳輪周り含む）・腹部（ヘソ下含む）＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_arms_legs" onchange="keisan()"> 両腕+両足セット(125分) 税込 28,600円<span class="set-detail">＜肘上・肘下・手の甲＋指・膝上・膝下・足の甲＋指＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_arms" onchange="keisan()"> 両腕セット(65分) 税込 17,600円<span class="set-detail">＜肘上・肘下・手の甲＋指＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_legs" onchange="keisan()"> 両足セット(65分) 税込 17,600円<span class="set-detail">＜膝上・膝下・足の甲＋指＞</span></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="set_ear_whole" onchange="keisan()"> 耳全体（耳珠、耳たぶ含む）(25分) 税込 8,800円<span class="set-detail">＜耳珠・耳たぶ＞</span></td>
+                </tr>
+            </table>
 
-    const findMenuDataById = (id) => menuData[id];
-    const findMenuDataByName = (name) => Object.values(menuData).find(menu => menu.name === name);
+            <b class="menu-category-title">パーツメニュー</b>
+            <b class="menu-subtitle">【顔】</b>
+            <table>
+                <tr>
+                    <td><input type="checkbox" id="part_nose_under" onchange="keisan()"> <label for="part_nose_under" id="label_part_nose_under">鼻下(16分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_mouth_under" onchange="keisan()"> <label for="part_mouth_under" id="label_part_mouth_under">口下(16分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_cheek" onchange="keisan()"> <label for="part_cheek" id="label_part_cheek">頬(16分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_face_line" onchange="keisan()"> <label for="part_face_line" id="label_part_face_line">フェイスライン(16分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_neck" onchange="keisan()"> <label for="part_neck" id="label_part_neck">首(16分) 税込 4,400円</label></td>
+                </tr>
+            </table>
 
-    window.keisan = function() {
-        let totalTime = 0;
-        let totalPrice = 0;
-        const selectedMenus = [];
-        const checkedSetMenuIds = new Set();
+            <b class="menu-subtitle">【胴】</b>
+            <table>
+                <tr>
+                    <td><input type="checkbox" id="part_nape" onchange="keisan()"> <label for="part_nape" id="label_part_nape">うなじ(16分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_armpit" onchange="keisan()"> <label for="part_armpit" id="label_part_armpit">脇(13分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_chest_nipple" onchange="keisan()"> <label for="part_chest_nipple" id="label_part_chest_nipple">胸（乳輪周り含む）(16分) 6,600円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_abdomen_navel" onchange="keisan()"> <label for="part_abdomen_navel" id="label_part_abdomen_navel">腹部（ヘソ下含む）(16分) 税込 6,600円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_back_upper" onchange="keisan()"> <label for="part_back_upper" id="label_part_back_upper">背中上(16分) 税込 6,600円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_back_lower" onchange="keisan()"> <label for="part_back_lower" id="label_part_back_lower">背中下(16分) 税込 6,600円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_buttocks" onchange="keisan()"> <label for="part_buttocks" id="label_part_buttocks">臀部（おしり）(16分) 税込 6,600円</label></td>
+                </tr>
+            </table>
 
-        // セットメニューの選択状態をまず収集
-        for (const id in menuData) {
-            const checkbox = document.getElementById(id);
-            if (checkbox && id.startsWith('set_') && checkbox.checked) {
-                checkedSetMenuIds.add(id);
-            }
-        }
+            <b class="menu-subtitle">【腕・足】</b>
+            <table>
+                <tr>
+                    <td><input type="checkbox" id="part_elbow_upper" onchange="keisan()"> <label for="part_elbow_upper" id="label_part_elbow_upper">肘上(16分) 税込 6,600円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_elbow_lower" onchange="keisan()"> <label for="part_elbow_lower" id="label_part_elbow_lower">肘下(18分) 税込 6,600円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_hand_finger" onchange="keisan()"> <label for="part_hand_finger" id="label_part_hand_finger">手の甲+指(12分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_knee_upper" onchange="keisan()"> <label for="part_knee_upper" id="label_part_knee_upper">膝上(35分) 税込 8,800円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_knee_lower" onchange="keisan()"> <label for="part_knee_lower" id="label_part_knee_lower">膝下(35分) 税込 8,800円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_foot_toe" onchange="keisan()"> <label for="part_foot_toe" id="label_part_foot_toe">足の甲＋指(12分) 税込 4,400円</label></td>
+                </tr>
+            </table>
 
-        // すべてのチェックボックスの状態をリセット
-        for (const id in menuData) {
-            const checkbox = document.getElementById(id);
-            if (checkbox) {
-                checkbox.disabled = false;
-            }
-        }
+            <b class="menu-subtitle">【VIO】</b>
+            <table>
+                <tr>
+                    <td><input type="checkbox" id="part_v_line" onchange="keisan()"> <label for="part_v_line" id="label_part_v_line">Vライン(16分) 税込 7,700円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_i_line" onchange="keisan()"> <label for="part_i_line" id="label_part_i_line">Iライン(20分) 税込 7,700円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_o_line" onchange="keisan()"> <label for="part_o_line" id="label_part_o_line">Oライン(16分) 税込 5,500円</label></td>
+                </tr>
+            </table>
 
-        // セットメニューに含まれるパーツを無効化
-        checkedSetMenuIds.forEach(setId => {
-            const set = findMenuDataById(setId);
-            if (set && set.parts) {
-                set.parts.forEach(partId => {
-                    const partCheckbox = document.getElementById(partId);
-                    if (partCheckbox) {
-                        partCheckbox.checked = false;
-                        partCheckbox.disabled = true;
-                    }
-                });
-            }
-        });
+            <b class="menu-subtitle">【特殊部位】</b>
+            <table>
+                <tr>
+                    <td><input type="checkbox" id="part_forehead" onchange="keisan()"> <label for="part_forehead" id="label_part_forehead">おでこ(13分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_eyebrow_upper" onchange="keisan()"> <label for="part_eyebrow_upper" id="label_part_eyebrow_upper">眉上(13分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_eyebrow_lower" onchange="keisan()"> <label for="part_eyebrow_lower" id="label_part_eyebrow_lower">眉下(13分) 税込 6,600円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_eyebrow_middle" onchange="keisan()"> <label for="part_eyebrow_middle" id="label_part_eyebrow_middle">眉中(13分) 税込 2,200円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_small_nose" onchange="keisan()"> <label for="part_small_nose" id="label_part_small_nose">小鼻(13分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_nose_hair" onchange="keisan()"> <label for="part_nose_hair" id="label_part_nose_hair">鼻毛(20分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_tragus" onchange="keisan()"> <label for="part_tragus" id="label_part_tragus">耳珠(13分) 税込 3,300円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_earlobe" onchange="keisan()"> <label for="part_earlobe" id="label_part_earlobe">耳たぶ(13分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_nipple" onchange="keisan()"> <label for="part_nipple" id="label_part_nipple">乳輪周り(10分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_navel_under" onchange="keisan()"> <label for="part_navel_under" id="label_part_navel_under">ヘソ下(10分) 税込 4,400円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="part_design_fee" onchange="keisan()"> <label for="part_design_fee" id="label_part_design_fee">デザイン料(0分) 税込 0円</label></td>
+                </tr>
+            </table>
 
-        // 最終的な計算
-        for (const id in menuData) {
-            const checkbox = document.getElementById(id);
-            if (checkbox && checkbox.checked) {
-                const menu = findMenuDataById(id);
-                if (menu) {
-                    totalTime += menu.time;
-                    totalPrice += menu.price;
-                    selectedMenus.push({
-                        name: menu.name,
-                        time: menu.time,
-                        price: menu.price,
-                        parts: menu.parts ? menu.parts.map(partId => findMenuDataById(partId)?.name).filter(Boolean) : []
-                    });
-                }
-            }
-        }
+            <b class="menu-category-title">その他メニュー</b>
+            <table>
+                <tr>
+                    <td><input type="checkbox" id="other_lala_peel" onchange="keisan()"> <label for="other_lala_peel" id="label_other_lala_peel">ララピール(90分) 税込 12,100円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="other_face_correction" onchange="keisan()"> <label for="other_face_correction" id="label_other_face_correction">小顔矯正術(90分) 税込 22,000円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="other_derma_scalp" onchange="keisan()"> <label for="other_derma_scalp" id="label_other_derma_scalp">ダーマインジェクション（スカルプケア）(50分) 税込 22,000円</label></td>
+                </tr>
+                <tr>
+                    <td><input type="checkbox" id="other_derma_skin" onchange="keisan()"> <label for="other_derma_skin" id="label_other_derma_skin">ダーマインジェクション（肌育ケア）(50分) 税込 22,000円</label></td>
+                </tr>
+            </table>
+        </div>
 
-        // 合計時間を30分刻みに繰り上げる
-        const roundedTime = Math.ceil(totalTime / 30) * 30;
-        const hours = Math.floor(roundedTime / 60);
-        const minutes = roundedTime % 60;
+        <div class="total-row-wrapper">
+            <div class="total-row">
+                <span style="font-weight: bold; color: #cc0000; display: flex; align-items: center; justify-content: center;">
+                    ご予約時間枠 
+                    <div class="time-input-container">
+                        <input type="text" id="totalTime" value="0.0" readonly>
+                    </div>
+                </span>
+                <span id="totalPrice">料金合計: 0円（税込）</span>
+                <textarea id="message-area" readonly></textarea>
+            </div>
+            <button id="copyButton" class="copy-button">①選択内容をコピー</button>
+            <a href="https://liff.line.me/1657088803-ODW7m7Nn?calendar_salon_id=100&ts=1752815909" id="reservationButton" class="reservation-button" target="_blank" rel="noopener noreferrer">②予約ページへ</a>
+        </div>
+    </div>
 
-        // 画面表示を更新
-        const totalTimeDisplay = document.getElementById('totalTime');
-        const totalPriceDisplay = document.getElementById('totalPrice');
-        const messageArea = document.getElementById('message-area');
-
-        totalTimeDisplay.value = `${hours}.${String(minutes).padStart(2, '0')}`;
-        totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-
-        let messageText = '選択した部位:\n';
-        if (selectedMenus.length > 0) {
-            messageText += selectedMenus.map(menu => {
-                const partsText = menu.parts.length > 0 ? `＜${menu.parts.join('、')}＞` : '';
-                return `${menu.name}(${menu.time}分) 税込 ${menu.price.toLocaleString()}円 ${partsText}`;
-            }).join('\n');
-        } else {
-            messageText += 'なし';
-        }
-        messageText += `\n---\n合計時間: ${hours}時間${minutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-        messageArea.value = messageText;
-
-        // コピーボタンのクリックイベントを設定
-        const copyButton = document.getElementById('copyButton');
-        copyButton.onclick = function() {
-            let finalCopyText = '選択した部位:\n';
-            if (selectedMenus.length > 0) {
-                finalCopyText += selectedMenus.map(menu => {
-                    return `【${menu.name}】 税込 ${menu.price.toLocaleString()}円`;
-                }).join('\n');
-            } else {
-                finalCopyText += 'なし';
-            }
-            finalCopyText += `\n---\n合計時間: ${hours}時間${minutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-
-            navigator.clipboard.writeText(finalCopyText)
-                .then(() => {
-                    alert(`選択内容がコピーされました！\nご予約メニュー【${totalTimeDisplay.value}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
-                })
-                .catch(err => {
-                    console.error('コピーに失敗しました', err);
-                });
-        };
-    }
-
-    // イベントリスナーのセットアップ
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', window.keisan);
-    });
-
-    window.keisan();
-});
+    <script src="script.js"></script>
+</body>
+</html>
