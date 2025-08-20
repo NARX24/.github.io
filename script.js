@@ -1,23 +1,23 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    // 料金と時間のデータをマップとして保持
+    // メニュー項目と関連するパーツのデータを定義
     const menuData = {
         // セットメニュー
-        'set_eyebrow': { name: '眉毛セット', time: 40, price: 11000, parts: ['眉上', '眉下', '眉中', 'デザイン料'] },
-        'set_fullface': { name: '全顔セット', time: 65, price: 13200, parts: ['鼻下', '口下', '頬', 'フェイスライン', '首'] },
-        'set_fullface_eyebrow': { name: '全顔+眉毛脱毛セット', time: 105, price: 22000, parts: ['全顔セット', '眉毛セット'] },
-        'set_fullbody_all': { name: '全身オール（顔、VIO含む）', time: 270, price: 52800, parts: ['上半身セット', '下半身セット'] },
-        'set_fullbody_noface': { name: '顔なし全身', time: 200, price: 41800, parts: ['脇', 'うなじ', '背中上', '背中下', '胸（乳輪周り含む）', '腹部（ヘソ下含む）', '肘上', '肘下', '手の甲＋指', 'Vライン', 'Iライン', 'Oライン', '臀部（おしり）', '膝上', '膝下', '足の甲＋指'] },
-        'set_upperbody': { name: '上半身セット', time: 170, price: 30800, parts: ['全顔セット', '脇', '胸（乳輪周り含む）', '腹部（ヘソ下含む）', 'うなじ', '背中上', '背中下', '肘上', '肘下', '手の甲＋指'] },
-        'set_lowerbody': { name: '下半身セット', time: 150, price: 30800, parts: ['VIOセット', '臀部（おしり）', '膝上', '膝下', '足の甲＋指'] },
-        'set_vio': { name: 'VIOセット', time: 50, price: 16500, parts: ['Vライン', 'Iライン', 'Oライン'] },
-        'set_fullface_vio': { name: '全顔+VIOセット', time: 100, price: 27500, parts: ['全顔セット', 'VIOセット'] },
-        'set_vio_buttocks': { name: 'VIO+臀部（おしり）セット', time: 60, price: 20900, parts: ['VIOセット', '臀部（おしり）'] },
-        'set_navel_vio': { name: 'ヘソ下+VIOセット', time: 55, price: 18700, parts: ['ヘソ下', 'VIOセット'] },
-        'set_chest_abdomen': { name: '胸＋腹部セット', time: 35, price: 9900, parts: ['胸（乳輪周り含む）', '腹部（ヘソ下含む）'] },
-        'set_arms_legs': { name: '両腕+両足セット', time: 125, price: 28600, parts: ['肘上', '肘下', '手の甲＋指', '膝上', '膝下', '足の甲＋指'] },
-        'set_arms': { name: '両腕セット', time: 65, price: 17600, parts: ['肘上', '肘下', '手の甲＋指'] },
-        'set_legs': { name: '両足セット', time: 65, price: 17600, parts: ['膝上', '膝下', '足の甲＋指'] },
-        'set_ear_whole': { name: '耳全体（耳珠、耳たぶ含む）', time: 25, price: 8800, parts: ['耳珠', '耳たぶ'] },
+        'set_eyebrow': { name: '眉毛セット', time: 40, price: 11000, parts: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'] },
+        'set_fullface': { name: '全顔セット', time: 65, price: 13200, parts: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'] },
+        'set_fullface_eyebrow': { name: '全顔+眉毛脱毛セット', time: 105, price: 22000, parts: ['set_fullface', 'part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'] },
+        'set_fullbody_all': { name: '全身オール（顔、VIO含む）', time: 270, price: 52800, parts: ['set_upperbody', 'set_lowerbody'] },
+        'set_fullbody_noface': { name: '顔なし全身', time: 200, price: 41800, parts: ['part_armpit', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_chest_nipple', 'part_abdomen_navel', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_v_line', 'part_i_line', 'part_o_line', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
+        'set_upperbody': { name: '上半身セット', time: 170, price: 30800, parts: ['set_fullface', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
+        'set_lowerbody': { name: '下半身セット', time: 150, price: 30800, parts: ['set_vio', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
+        'set_vio': { name: 'VIOセット', time: 50, price: 16500, parts: ['part_v_line', 'part_i_line', 'part_o_line'] },
+        'set_fullface_vio': { name: '全顔+VIOセット', time: 100, price: 27500, parts: ['set_fullface', 'set_vio'] },
+        'set_vio_buttocks': { name: 'VIO+臀部（おしり）セット', time: 60, price: 20900, parts: ['set_vio', 'part_buttocks'] },
+        'set_navel_vio': { name: 'ヘソ下+VIOセット', time: 55, price: 18700, parts: ['part_navel_under', 'set_vio'] },
+        'set_chest_abdomen': { name: '胸＋腹部セット', time: 35, price: 9900, parts: ['part_chest_nipple', 'part_abdomen_navel'] },
+        'set_arms_legs': { name: '両腕+両足セット', time: 125, price: 28600, parts: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
+        'set_arms': { name: '両腕セット', time: 65, price: 17600, parts: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
+        'set_legs': { name: '両足セット', time: 65, price: 17600, parts: ['part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
+        'set_ear_whole': { name: '耳全体（耳珠、耳たぶ含む）', time: 25, price: 8800, parts: ['part_tragus', 'part_earlobe'] },
         // パーツメニュー
         'part_nose_under': { name: '鼻下', time: 16, price: 4400, isPart: true },
         'part_mouth_under': { name: '口下', time: 16, price: 4400, isPart: true },
@@ -58,109 +58,96 @@ document.addEventListener('DOMContentLoaded', (event) => {
         'other_derma_skin': { name: 'ダーマインジェクション（肌育ケア）', time: 50, price: 22000 },
     };
 
-    function keisan() {
+    window.keisan = function() {
         let totalTime = 0;
         let totalPrice = 0;
-        const selectedParts = [];
+        const selectedMenus = [];
         const checkedSet = new Set();
         const partsToUncheck = new Set();
 
-        // 選択されたセットメニューを処理
-        for (const [key, value] of Object.entries(menuData)) {
-            const checkbox = document.getElementById(key);
+        // セットメニューの選択状態をまず確認
+        const setMenuIds = Object.keys(menuData).filter(key => key.startsWith('set_'));
+        setMenuIds.forEach(id => {
+            const checkbox = document.getElementById(id);
             if (checkbox && checkbox.checked) {
-                checkedSet.add(key);
-            }
-        }
-        
-        // セットメニューの選択によるパーツのチェック状態を制御
-        for (const [key, value] of Object.entries(menuData)) {
-            const checkbox = document.getElementById(key);
-            if (checkbox && checkbox.checked && value.parts) {
-                for (const partName of value.parts) {
-                    const partId = findPartIdByName(partName);
-                    if (partId) {
+                checkedSet.add(id);
+                // 含まれるパーツと他のセットメニューを非活性化リストに追加
+                const parts = menuData[id].parts;
+                if (parts) {
+                    parts.forEach(partId => {
                         partsToUncheck.add(partId);
-                    }
+                    });
                 }
             }
-        }
+        });
 
-        for (const [key, value] of Object.entries(menuData)) {
-            const checkbox = document.getElementById(key);
-            if (checkbox && checkbox.checked) {
-                if (value.isPart && partsToUncheck.has(key)) {
+        // パーツメニューを非活性化
+        const partMenuIds = Object.keys(menuData).filter(key => key.startsWith('part_'));
+        partMenuIds.forEach(id => {
+            const checkbox = document.getElementById(id);
+            if (checkbox) {
+                if (partsToUncheck.has(id)) {
                     checkbox.checked = false;
+                    checkbox.disabled = true;
+                } else {
+                    checkbox.disabled = false;
                 }
             }
-        }
+        });
 
-        // 最終的な計算
+        // 最終的な計算とメッセージ生成
         for (const [key, value] of Object.entries(menuData)) {
             const checkbox = document.getElementById(key);
             if (checkbox && checkbox.checked) {
                 totalTime += value.time;
                 totalPrice += value.price;
-                selectedParts.push(`${value.name}(${value.time}分) 税込 ${value.price.toLocaleString()}円`);
+                selectedMenus.push({ name: value.name, price: value.price });
             }
         }
 
+        // 合計時間を30分刻みで繰り上げる
+        const roundedTime = Math.ceil(totalTime / 30) * 30;
+
         // 画面表示を更新
-        const hours = Math.floor(totalTime / 60);
-        const minutes = totalTime % 60;
+        const hours = Math.floor(roundedTime / 60);
+        const minutes = roundedTime % 60;
         document.getElementById('totalTime').value = `${hours}.${String(minutes).padStart(2, '0')}`;
         document.getElementById('totalPrice').textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
         
         // メッセージエリアに表示する内容を生成
         let messageText = '選択した部位:\n';
-        if (selectedParts.length > 0) {
-            messageText += selectedParts.join('\n');
+        if (selectedMenus.length > 0) {
+            messageText += selectedMenus.map(menu => {
+                const partsText = menuData[Object.keys(menuData).find(key => menuData[key].name === menu.name)]?.parts?.map(id => menuData[id]?.name)?.join('、') || '';
+                return `${menu.name}(${menuData[Object.keys(menuData).find(key => menuData[key].name === menu.name)].time}分) 税込 ${menu.price.toLocaleString()}円 ${partsText ? `＜${partsText}＞` : ''}`;
+            }).join('\n');
         } else {
             messageText += 'なし';
         }
         messageText += `\n---\n合計時間: ${hours}時間${minutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-
         document.getElementById('message-area').value = messageText;
-        
-        // 修正後のコピー内容を生成
-        const finalSelectedParts = [];
-        for (const [key, value] of Object.entries(menuData)) {
-            const checkbox = document.getElementById(key);
-            if (checkbox && checkbox.checked) {
-                const partName = value.name;
-                const priceText = `税込 ${value.price.toLocaleString()}円`;
-                finalSelectedParts.push(`【${partName}】 ${priceText}`);
-            }
-        }
-        
-        let finalCopyText = '選択した部位:\n';
-        if (finalSelectedParts.length > 0) {
-            finalCopyText += finalSelectedParts.join('\n');
-        } else {
-            finalCopyText += 'なし';
-        }
-        finalCopyText += `\n---\n合計時間: ${hours}時間${minutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 
         // コピーボタンのクリックイベントを設定
         const copyButton = document.getElementById('copyButton');
         copyButton.onclick = function() {
+            let finalCopyText = '選択した部位:\n';
+            if (selectedMenus.length > 0) {
+                finalCopyText += selectedMenus.map(menu => {
+                    return `【${menu.name}】 税込 ${menu.price.toLocaleString()}円`;
+                }).join('\n');
+            } else {
+                finalCopyText += 'なし';
+            }
+            finalCopyText += `\n---\n合計時間: ${hours}時間${minutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+
             navigator.clipboard.writeText(finalCopyText)
                 .then(() => {
-                    alert(`選択内容がコピーされました！\nご予約メニュー【${hours}時間${minutes}分枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
+                    alert(`選択内容がコピーされました！\nご予約メニュー【${hours}.${String(minutes).padStart(2, '0')}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
                 })
                 .catch(err => {
                     console.error('コピーに失敗しました', err);
                 });
         };
-    }
-
-    function findPartIdByName(name) {
-        for (const [key, value] of Object.entries(menuData)) {
-            if (value.name === name) {
-                return key;
-            }
-        }
-        return null;
     }
 
     // 全てのチェックボックスにイベントリスナーを追加
