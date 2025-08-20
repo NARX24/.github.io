@@ -58,74 +58,96 @@ document.addEventListener('DOMContentLoaded', (event) => {
         'other_derma_skin': { name: 'ダーマインジェクション（肌育ケア）', time: 50, price: 22000 },
     };
 
+    const findMenuDataById = (id) => menuData[id];
+    
+    // onchangeイベントから呼び出されるようにグローバルスコープに定義
     window.keisan = function() {
         let totalTime = 0;
         let totalPrice = 0;
         const selectedMenus = [];
-        const checkedSet = new Set();
-        const partsToUncheck = new Set();
 
-        // セットメニューの選択状態をまず確認
-        const setMenuIds = Object.keys(menuData).filter(key => key.startsWith('set_'));
-        setMenuIds.forEach(id => {
+        // すべてのチェックボックスを有効化
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.disabled = false;
+        });
+
+        const checkedSetMenuIds = new Set();
+        // 選択されたセットメニューをまず収集
+        for (const id in menuData) {
+            const checkbox = document.getElementById(id);
+            if (checkbox && id.startsWith('set_') && checkbox.checked) {
+                checkedSetMenuIds.add(id);
+            }
+        }
+        
+        // セットメニューに含まれるパーツと、他のセットメニューを無効化
+        checkedSetMenuIds.forEach(setId => {
+            const set = findMenuDataById(setId);
+            if (set && set.parts) {
+                set.parts.forEach(partId => {
+                    const partCheckbox = document.getElementById(partId);
+                    if (partCheckbox) {
+                        partCheckbox.checked = false;
+                        partCheckbox.disabled = true;
+                    }
+                });
+            }
+            // 他のすべてのセットメニューも無効化
+            const allSetMenus = document.querySelectorAll('input[id^="set_"]');
+            allSetMenus.forEach(setCheckbox => {
+                if (setCheckbox.id !== setId) {
+                    setCheckbox.checked = false;
+                    setCheckbox.disabled = true;
+                }
+            });
+        });
+
+        // 最終的な計算
+        for (const id in menuData) {
             const checkbox = document.getElementById(id);
             if (checkbox && checkbox.checked) {
-                checkedSet.add(id);
-                // 含まれるパーツと他のセットメニューを非活性化リストに追加
-                const parts = menuData[id].parts;
-                if (parts) {
-                    parts.forEach(partId => {
-                        partsToUncheck.add(partId);
+                const menu = findMenuDataById(id);
+                if (menu) {
+                    totalTime += menu.time;
+                    totalPrice += menu.price;
+                    const partsText = menu.parts ? menu.parts.map(partId => {
+                        const partMenu = findMenuDataById(partId);
+                        return partMenu ? partMenu.name : null;
+                    }).filter(Boolean).join('、') : '';
+                    selectedMenus.push({
+                        name: menu.name,
+                        time: menu.time,
+                        price: menu.price,
+                        parts: partsText
                     });
                 }
             }
-        });
-
-        // パーツメニューを非活性化
-        const partMenuIds = Object.keys(menuData).filter(key => key.startsWith('part_'));
-        partMenuIds.forEach(id => {
-            const checkbox = document.getElementById(id);
-            if (checkbox) {
-                if (partsToUncheck.has(id)) {
-                    checkbox.checked = false;
-                    checkbox.disabled = true;
-                } else {
-                    checkbox.disabled = false;
-                }
-            }
-        });
-
-        // 最終的な計算とメッセージ生成
-        for (const [key, value] of Object.entries(menuData)) {
-            const checkbox = document.getElementById(key);
-            if (checkbox && checkbox.checked) {
-                totalTime += value.time;
-                totalPrice += value.price;
-                selectedMenus.push({ name: value.name, price: value.price });
-            }
         }
-
-        // 合計時間を30分刻みで繰り上げる
+        
+        // 合計時間を30分刻みに繰り上げる
         const roundedTime = Math.ceil(totalTime / 30) * 30;
-
-        // 画面表示を更新
         const hours = Math.floor(roundedTime / 60);
         const minutes = roundedTime % 60;
-        document.getElementById('totalTime').value = `${hours}.${String(minutes).padStart(2, '0')}`;
-        document.getElementById('totalPrice').textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
         
-        // メッセージエリアに表示する内容を生成
+        // 画面表示を更新
+        const totalTimeDisplay = document.getElementById('totalTime');
+        const totalPriceDisplay = document.getElementById('totalPrice');
+        const messageArea = document.getElementById('message-area');
+
+        totalTimeDisplay.value = `${hours}.${String(minutes).padStart(2, '0')}`;
+        totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+
         let messageText = '選択した部位:\n';
         if (selectedMenus.length > 0) {
             messageText += selectedMenus.map(menu => {
-                const partsText = menuData[Object.keys(menuData).find(key => menuData[key].name === menu.name)]?.parts?.map(id => menuData[id]?.name)?.join('、') || '';
-                return `${menu.name}(${menuData[Object.keys(menuData).find(key => menuData[key].name === menu.name)].time}分) 税込 ${menu.price.toLocaleString()}円 ${partsText ? `＜${partsText}＞` : ''}`;
+                const parts = menu.parts ? `＜${menu.parts}＞` : '';
+                return `${menu.name}(${menu.time}分) 税込 ${menu.price.toLocaleString()}円 ${parts}`;
             }).join('\n');
         } else {
             messageText += 'なし';
         }
         messageText += `\n---\n合計時間: ${hours}時間${minutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-        document.getElementById('message-area').value = messageText;
+        messageArea.value = messageText;
 
         // コピーボタンのクリックイベントを設定
         const copyButton = document.getElementById('copyButton');
@@ -142,19 +164,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
             navigator.clipboard.writeText(finalCopyText)
                 .then(() => {
-                    alert(`選択内容がコピーされました！\nご予約メニュー【${hours}.${String(minutes).padStart(2, '0')}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
+                    alert(`選択内容がコピーされました！\nご予約メニュー【${totalTimeDisplay.value}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
                 })
                 .catch(err => {
                     console.error('コピーに失敗しました', err);
                 });
         };
-    }
-
-    // 全てのチェックボックスにイベントリスナーを追加
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', keisan);
-    });
+    };
 
     // 初期状態の計算を実行
-    keisan();
+    window.keisan();
 });
