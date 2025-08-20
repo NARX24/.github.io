@@ -1,10 +1,8 @@
 document.addEventListener('DOMContentLoaded', (event) => {
-    // メニュー項目と関連するパーツのデータを定義
     const menuData = {
-        // セットメニュー
         'set_eyebrow': { name: '眉毛セット', time: 40, price: 11000, parts: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'] },
         'set_fullface': { name: '全顔セット', time: 65, price: 13200, parts: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'] },
-        'set_fullface_eyebrow': { name: '全顔+眉毛脱毛セット', time: 105, price: 22000, parts: ['set_fullface', 'part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'] },
+        'set_fullface_eyebrow': { name: '全顔+眉毛脱毛セット', time: 105, price: 22000, parts: ['set_fullface', 'set_eyebrow'] }, // 修正箇所①
         'set_fullbody_all': { name: '全身オール（顔、VIO含む）', time: 270, price: 52800, parts: ['set_upperbody', 'set_lowerbody'] },
         'set_fullbody_noface': { name: '顔なし全身', time: 200, price: 41800, parts: ['part_armpit', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_chest_nipple', 'part_abdomen_navel', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_v_line', 'part_i_line', 'part_o_line', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
         'set_upperbody': { name: '上半身セット', time: 170, price: 30800, parts: ['set_fullface', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
@@ -18,7 +16,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         'set_arms': { name: '両腕セット', time: 65, price: 17600, parts: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
         'set_legs': { name: '両足セット', time: 65, price: 17600, parts: ['part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
         'set_ear_whole': { name: '耳全体（耳珠、耳たぶ含む）', time: 25, price: 8800, parts: ['part_tragus', 'part_earlobe'] },
-        // パーツメニュー
         'part_nose_under': { name: '鼻下', time: 16, price: 4400, isPart: true },
         'part_mouth_under': { name: '口下', time: 16, price: 4400, isPart: true },
         'part_cheek': { name: '頬', time: 16, price: 4400, isPart: true },
@@ -51,7 +48,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
         'part_nipple': { name: '乳輪周り', time: 10, price: 4400, isPart: true },
         'part_navel_under': { name: 'ヘソ下', time: 10, price: 4400, isPart: true },
         'part_design_fee': { name: 'デザイン料', time: 0, price: 1100, isPart: true },
-        // その他メニュー
         'other_lala_peel': { name: 'ララピール', time: 90, price: 12100 },
         'other_face_correction': { name: '小顔矯正術', time: 90, price: 22000 },
         'other_derma_scalp': { name: 'ダーマインジェクション（スカルプケア）', time: 50, price: 22000 },
@@ -59,47 +55,31 @@ document.addEventListener('DOMContentLoaded', (event) => {
     };
 
     const findMenuDataById = (id) => menuData[id];
-    
-    // onchangeイベントから呼び出されるようにグローバルスコープに定義
+
     window.keisan = function() {
         let totalTime = 0;
         let totalPrice = 0;
         const selectedMenus = [];
 
-        // ---------------------------------------------------
-        // 1. パーツ選択によるセットメニューの自動チェック
-        // ---------------------------------------------------
+        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+            checkbox.disabled = false;
+        });
+
         const checkedPartIds = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
         
         for (const setId in menuData) {
             if (setId.startsWith('set_') && menuData[setId].parts) {
-                const partsInSet = menuData[setId].parts;
+                const partsInSet = menuData[setId].parts.filter(partId => partId.startsWith('part_'));
+                const isSetComplete = partsInSet.every(partId => checkedPartIds.has(partId));
                 const setCheckbox = document.getElementById(setId);
-                if (!setCheckbox) continue;
-
-                const isSetComplete = partsInSet.every(partId => {
-                    if (partId.startsWith('set_')) {
-                        return checkedPartIds.has(partId);
-                    } else {
-                        return checkedPartIds.has(partId);
-                    }
-                });
-                
-                if (isSetComplete) {
-                    setCheckbox.checked = true;
+                if (setCheckbox) {
+                    setCheckbox.checked = isSetComplete;
                 }
             }
         }
         
-        // ---------------------------------------------------
-        // 2. 重複防止と計算ロジック
-        // ---------------------------------------------------
-        const checkedSetMenuIds = new Set();
-        document.querySelectorAll('input[id^="set_"]:checked').forEach(checkbox => {
-            checkedSetMenuIds.add(checkbox.id);
-        });
+        const checkedSetMenuIds = new Set(Array.from(document.querySelectorAll('input[id^="set_"]:checked')).map(cb => cb.id));
 
-        // 選択されたセットメニューを構成する全てのパーツIDを収集
         const partsToDisable = new Set();
         checkedSetMenuIds.forEach(setId => {
             const set = findMenuDataById(setId);
@@ -115,13 +95,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 }
             }
         });
-
-        // すべてのチェックボックスの状態をリセット
-        document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.disabled = false;
-        });
         
-        // セットメニューに含まれるパーツを無効化
         partsToDisable.forEach(partId => {
             const partCheckbox = document.getElementById(partId);
             if (partCheckbox && !partId.startsWith('set_')) {
@@ -130,7 +104,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         });
 
-        // 最終的な計算
         const processedIds = new Set();
         for (const id in menuData) {
             const checkbox = document.getElementById(id);
@@ -150,7 +123,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
                         parts: partsText
                     });
                     
-                    // 計算対象となったセットメニューのパーツも処理済みとしてマーク
                     if (menu.parts) {
                          const parts = [...menu.parts];
                          while(parts.length > 0) {
@@ -166,18 +138,16 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         }
         
-        // ---------------------------------------------------
-        // 3. 表示の更新とコピー機能
-        // ---------------------------------------------------
         const roundedTime = Math.ceil(totalTime / 30) * 30;
-        const hours = Math.floor(roundedTime / 60);
-        const minutes = roundedTime % 60;
-        
+        const totalHours = roundedTime / 60; // 修正箇所②
+        const displayHours = Math.floor(totalHours);
+        const displayMinutes = (totalHours - displayHours) * 60;
+
         const totalTimeDisplay = document.getElementById('totalTime');
         const totalPriceDisplay = document.getElementById('totalPrice');
         const messageArea = document.getElementById('message-area');
 
-        totalTimeDisplay.value = `${hours}.${String(minutes).padStart(2, '0')}`;
+        totalTimeDisplay.value = totalHours.toFixed(1).replace(/\.0$/, ''); // 修正箇所②
         totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 
         let messageText = '選択した部位:\n';
@@ -189,7 +159,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
         } else {
             messageText += 'なし';
         }
-        messageText += `\n---\n合計時間: ${hours}時間${minutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+        messageText += `\n---\n合計時間: ${displayHours}時間${displayMinutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
         messageArea.value = messageText;
 
         const copyButton = document.getElementById('copyButton');
@@ -202,7 +172,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             } else {
                 finalCopyText += 'なし';
             }
-            finalCopyText += `\n---\n合計時間: ${hours}時間${minutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+            finalCopyText += `\n---\n合計時間: ${displayHours}時間${displayMinutes}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 
             navigator.clipboard.writeText(finalCopyText)
                 .then(() => {
@@ -214,11 +184,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
         };
     };
 
-    // すべてのチェックボックスにイベントリスナーを追加
     document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
         checkbox.addEventListener('change', window.keisan);
     });
 
-    // 初期状態の計算を実行
     window.keisan();
 });
