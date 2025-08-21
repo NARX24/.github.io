@@ -60,14 +60,15 @@ const menuData = {
 };
 
 // セットメニューに含まれるパーツの関連付け（階層構造に対応）
+// 各セットが「直接」含む下位メニューIDを定義
 const setIncludes = {
     set_eyebrow: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'],
     set_fullface: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'],
     set_fullface_eyebrow: ['set_fullface', 'set_eyebrow'],
-    set_fullbody_all: ['set_upperbody', 'set_lowerbody', 'set_fullface_eyebrow', 'part_earlobe', 'part_nipple', 'part_navel_under'],
-    set_fullbody_noface: ['set_upperbody', 'set_lowerbody', 'set_arms_legs'],
-    set_upperbody: ['set_fullface', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'set_arms'],
-    set_lowerbody: ['set_vio', 'part_buttocks', 'set_legs'],
+    set_fullbody_all: ['set_fullface_eyebrow', 'set_upperbody', 'set_lowerbody', 'part_earlobe', 'part_nipple', 'part_navel_under'],
+    set_fullbody_noface: ['set_upperbody', 'set_lowerbody'],
+    set_upperbody: ['set_fullface', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'],
+    set_lowerbody: ['set_vio', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'],
     set_vio: ['part_v_line', 'part_i_line', 'part_o_line'],
     set_fullface_vio: ['set_fullface', 'set_vio'],
     set_vio_buttocks: ['set_vio', 'part_buttocks'],
@@ -109,6 +110,7 @@ function getIncludedItems(setId) {
     stack.forEach(id => {
         includedIds.add(id);
         const item = menuData[id];
+        // 階層を深く探索し、すべての下位メニューを取得
         if (item && item.type === 'set') {
             const nestedIds = getIncludedItems(id);
             nestedIds.forEach(nestedId => includedIds.add(nestedId));
@@ -132,19 +134,19 @@ function updateCalculation() {
     });
 
     // 2. パーツからセットへの自動切り替え
-    const checkedParts = Array.from(checkboxes).filter(cb => cb.checked && menuData[cb.id]?.type === 'part').map(cb => cb.id);
+    const checkedItems = Array.from(checkboxes).filter(cb => cb.checked).map(cb => cb.id);
     for (const setId in setIncludes) {
-        const includedParts = getIncludedItems(setId).filter(id => menuData[id]?.type === 'part');
+        const includedItems = getIncludedItems(setId);
         const setCheckbox = document.getElementById(setId);
-        if (setCheckbox && includedParts.length > 0) {
-            const allIncludedPartsChecked = includedParts.every(partId => checkedParts.includes(partId));
-            if (allIncludedPartsChecked) {
+        if (setCheckbox && includedItems.length > 0) {
+            const allIncludedItemsChecked = includedItems.every(itemId => checkedItems.includes(itemId));
+            if (allIncludedItemsChecked) {
                 setCheckbox.checked = true;
             }
         }
     }
 
-    // 3. セットメニューに含まれる全メニューを無効化
+    // 3. 選択されたセットメニューに含まれる全メニューを無効化
     checkboxes.forEach(cb => {
         if (cb.checked && menuData[cb.id]?.type === 'set') {
             const includedItems = getIncludedItems(cb.id);
@@ -161,7 +163,7 @@ function updateCalculation() {
             });
         }
     });
-    
+
     // 4. 計算と表示
     let totalTime = 0;
     let totalPrice = 0;
