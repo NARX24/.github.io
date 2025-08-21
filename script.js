@@ -196,27 +196,31 @@ function updateCalculation() {
     }
 
     // テキストエリアのメッセージを更新
-    updateMessageArea(selectedItems, totalTime, totalPrice);
+    updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime);
 }
 
 /**
  * メッセージエリアのテキストを更新
  */
-function updateMessageArea(selectedItems, totalTime, totalPrice) {
-    let message = "選択した部位:\n";
-    selectedItems.forEach(item => {
-        message += `・${item.label} 税込 ${item.price.toLocaleString()}円\n`;
-    });
+function updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime) {
+    let message = `ご予約メニュー【${formattedTime}時間枠】を選択後、\nコピー内容ご予約時の［備考欄］に貼り付けて下さい。\n\n`;
 
-    if (selectedItems.length === 0) {
-        message = "選択されたメニューはありません。\n\n";
+    if (selectedItems.length > 0) {
+        message += "---" + "\n";
+        message += "選択した部位:" + "\n";
+        selectedItems.forEach(item => {
+            message += `【${item.label}】税込${item.price.toLocaleString()}円\n`;
+        });
+        message += "---" + "\n";
+        message += `合計時間:${Math.floor(totalTime / 60)}時間${totalTime % 60}分\n`;
+        message += `料金合計:${totalPrice.toLocaleString()}円(税込)`;
     } else {
-        message += '\n';
+        message += `\n` + `選択されたメニューはありません。` + `\n\n`;
+        message += `---` + `\n`;
+        message += `合計時間:${Math.floor(totalTime / 60)}時間${totalTime % 60}分\n`;
+        message += `料金合計:${totalPrice.toLocaleString()}円(税込)`;
     }
-
-    message += `合計時間: ${Math.floor(totalTime / 60)}時間${totalTime % 60}分\n`;
-    message += `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-
+    
     if (messageArea) {
         messageArea.value = message;
     }
@@ -229,6 +233,6 @@ function copyMessage() {
     if (messageArea) {
         messageArea.select();
         document.execCommand('copy');
-        alert('選択内容をコピーしました！');
+        alert('選択内容がコピーされました！\n\nご予約メニュー【●時間枠】を選択後、\nコピー内容ご予約時の［備考欄］に貼り付けて下さい。\n\n---\n選択した部位:\n【部位名】税込●円\n---\n合計時間:●時間●分\n料金合計:●円(税込)\n\n※上記が本来のコピー形式です。');
     }
 }
