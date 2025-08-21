@@ -63,19 +63,20 @@ const menuData = {
 const setIncludes = {
     set_eyebrow: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'],
     set_fullface: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'],
-    set_fullface_eyebrow: ['set_fullface', 'part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'],
-    set_fullbody_all: ['set_upperbody', 'set_lowerbody'],
+    set_fullface_eyebrow: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee', 'part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'],
+    set_fullbody_all: ['set_fullface_eyebrow', 'set_upperbody', 'set_lowerbody', 'part_earlobe', 'part_nipple', 'part_navel_under'],
     set_fullbody_noface: ['part_armpit', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_chest_nipple', 'part_abdomen_navel', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe', 'part_buttocks', 'part_v_line', 'part_i_line', 'part_o_line', 'part_nipple'],
-    set_upperbody: ['set_fullface', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'],
-    set_lowerbody: ['set_vio', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'],
+    set_upperbody: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'],
+    set_lowerbody: ['part_v_line', 'part_i_line', 'part_o_line', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'],
     set_vio: ['part_v_line', 'part_i_line', 'part_o_line'],
-    set_fullface_vio: ['set_fullface', 'set_vio'],
-    set_vio_buttocks: ['set_vio', 'part_buttocks'],
-    set_navel_vio: ['part_navel_under', 'set_vio'],
+    set_fullface_vio: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck', 'part_v_line', 'part_i_line', 'part_o_line'],
+    set_vio_buttocks: ['part_v_line', 'part_i_line', 'part_o_line', 'part_buttocks'],
+    set_navel_vio: ['part_navel_under', 'part_v_line', 'part_i_line', 'part_o_line'],
     set_chest_abdomen: ['part_chest_nipple', 'part_abdomen_navel'],
-    set_arms_legs: ['set_arms', 'set_legs'],
+    set_arms_legs: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'],
     set_arms: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'],
     set_legs: ['part_knee_upper', 'part_knee_lower', 'part_foot_toe'],
+    set_ear_whole: ['part_tragus', 'part_earlobe'],
 };
 
 // 逆引きマップ（パーツがどのセットに含まれるか）を作成
@@ -85,7 +86,9 @@ for (const setId in setIncludes) {
         if (!partToSetMap[partId]) {
             partToSetMap[partId] = [];
         }
-        partToSetMap[partId].push(setId);
+        if (menuData[setId]?.type === 'set') {
+             partToSetMap[partId].push(setId);
+        }
     });
 }
 
@@ -113,13 +116,29 @@ updateCalculation();
  * 計算を更新するメイン関数
  */
 function updateCalculation() {
-    // 1. すべてのチェックボックスをリセット
+    // 1. パーツからセットへの自動切り替え
+    const checkedParts = Array.from(checkboxes).filter(cb => cb.checked && menuData[cb.id]?.type === 'part').map(cb => cb.id);
+    for (const setId in setIncludes) {
+        const includedParts = setIncludes[setId];
+        // 含まれるパーツがすべてチェックされているか確認
+        const allIncludedPartsChecked = includedParts.every(partId => checkedParts.includes(partId));
+        // セットメニュー自体がチェックされていないことを確認
+        const setCheckbox = document.getElementById(setId);
+        if (allIncludedPartsChecked && setCheckbox && !setCheckbox.checked) {
+            setCheckbox.checked = true;
+        }
+    }
+
+    // 2. すべてのチェックボックスの状態をリセット
     checkboxes.forEach(cb => {
         cb.disabled = false;
-        cb.parentElement.style.color = 'initial';
+        const parent = cb.parentElement;
+        if (parent) {
+            parent.style.color = 'initial';
+        }
     });
 
-    // 2. 選択されたセットメニューに含まれるパーツを無効化
+    // 3. セットメニューに含まれるパーツを無効化
     checkboxes.forEach(cb => {
         if (cb.checked && menuData[cb.id]?.type === 'set') {
             const included = setIncludes[cb.id];
@@ -129,24 +148,10 @@ function updateCalculation() {
                     if (includedCheckbox) {
                         includedCheckbox.disabled = true;
                         includedCheckbox.checked = false;
-                        includedCheckbox.parentElement.style.color = '#ccc';
-                    }
-                });
-            }
-        }
-    });
-
-    // 3. 選択されたパーツメニューを含むセットメニューを無効化
-    checkboxes.forEach(cb => {
-        if (cb.checked && menuData[cb.id]?.type === 'part') {
-            const includedSets = partToSetMap[cb.id];
-            if (includedSets) {
-                includedSets.forEach(setId => {
-                    const setCheckbox = document.getElementById(setId);
-                    if (setCheckbox) {
-                        setCheckbox.disabled = true;
-                        setCheckbox.checked = false;
-                        setCheckbox.parentElement.style.color = '#ccc';
+                        const parent = includedCheckbox.parentElement;
+                        if (parent) {
+                            parent.style.color = '#ccc';
+                        }
                     }
                 });
             }
@@ -174,7 +179,8 @@ function updateCalculation() {
     const roundedTimeMinutes = Math.ceil(totalTime / 30) * 30;
     const hours = Math.floor(roundedTimeMinutes / 60);
     const minutes = roundedTimeMinutes % 60;
-    const formattedTime = `${hours}.${String(minutes).padStart(2, '0')}`;
+    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedTime = `${hours}.${formattedMinutes}`;
 
     if (totalPriceElement) {
         totalPriceElement.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
