@@ -59,47 +59,34 @@ const menuData = {
     other_derma_skin: { time: 50, price: 22000, label: 'ダーマインジェクション（肌育ケア）', type: 'other' },
 };
 
-// セットメニューに含まれるパーツの関連付け
+// セットメニューに含まれるパーツの関連付け（階層構造に対応）
 const setIncludes = {
     set_eyebrow: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'],
     set_fullface: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'],
-    set_fullface_eyebrow: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee', 'part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'],
-    set_fullbody_all: ['set_fullface_eyebrow', 'set_upperbody', 'set_lowerbody', 'part_earlobe', 'part_nipple', 'part_navel_under'],
-    set_fullbody_noface: ['part_armpit', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_chest_nipple', 'part_abdomen_navel', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe', 'part_buttocks', 'part_v_line', 'part_i_line', 'part_o_line', 'part_nipple'],
-    set_upperbody: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'],
-    set_lowerbody: ['part_v_line', 'part_i_line', 'part_o_line', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'],
+    set_fullface_eyebrow: ['set_fullface', 'set_eyebrow'],
+    set_fullbody_all: ['set_upperbody', 'set_lowerbody', 'set_fullface_eyebrow', 'part_earlobe', 'part_nipple', 'part_navel_under'],
+    set_fullbody_noface: ['set_upperbody', 'set_lowerbody', 'set_arms_legs'],
+    set_upperbody: ['set_fullface', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'set_arms'],
+    set_lowerbody: ['set_vio', 'part_buttocks', 'set_legs'],
     set_vio: ['part_v_line', 'part_i_line', 'part_o_line'],
-    set_fullface_vio: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck', 'part_v_line', 'part_i_line', 'part_o_line'],
-    set_vio_buttocks: ['part_v_line', 'part_i_line', 'part_o_line', 'part_buttocks'],
-    set_navel_vio: ['part_navel_under', 'part_v_line', 'part_i_line', 'part_o_line'],
+    set_fullface_vio: ['set_fullface', 'set_vio'],
+    set_vio_buttocks: ['set_vio', 'part_buttocks'],
+    set_navel_vio: ['part_navel_under', 'set_vio'],
     set_chest_abdomen: ['part_chest_nipple', 'part_abdomen_navel'],
-    set_arms_legs: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'],
+    set_arms_legs: ['set_arms', 'set_legs'],
     set_arms: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'],
     set_legs: ['part_knee_upper', 'part_knee_lower', 'part_foot_toe'],
     set_ear_whole: ['part_tragus', 'part_earlobe'],
 };
-
-// 逆引きマップ（パーツがどのセットに含まれるか）を作成
-const partToSetMap = {};
-for (const setId in setIncludes) {
-    setIncludes[setId].forEach(partId => {
-        if (!partToSetMap[partId]) {
-            partToSetMap[partId] = [];
-        }
-        if (menuData[setId]?.type === 'set') {
-             partToSetMap[partId].push(setId);
-        }
-    });
-}
 
 // DOM要素の取得
 const totalPriceElement = document.getElementById('totalPrice');
 const totalTimeElement = document.getElementById('totalTime');
 const messageArea = document.getElementById('message-area');
 const copyButton = document.getElementById('copyButton');
+const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 
 // すべてのチェックボックスにイベントリスナーを追加
-const checkboxes = document.querySelectorAll('input[type="checkbox"]');
 checkboxes.forEach(checkbox => {
     checkbox.addEventListener('change', updateCalculation);
 });
@@ -113,23 +100,29 @@ if (copyButton) {
 updateCalculation();
 
 /**
+ * セットメニューに含まれる全メニューIDを再帰的に取得する
+ */
+function getIncludedItems(setId) {
+    const includedIds = new Set();
+    const stack = setIncludes[setId] || [];
+    
+    stack.forEach(id => {
+        includedIds.add(id);
+        const item = menuData[id];
+        if (item && item.type === 'set') {
+            const nestedIds = getIncludedItems(id);
+            nestedIds.forEach(nestedId => includedIds.add(nestedId));
+        }
+    });
+
+    return Array.from(includedIds);
+}
+
+/**
  * 計算を更新するメイン関数
  */
 function updateCalculation() {
-    // 1. パーツからセットへの自動切り替え
-    const checkedParts = Array.from(checkboxes).filter(cb => cb.checked && menuData[cb.id]?.type === 'part').map(cb => cb.id);
-    for (const setId in setIncludes) {
-        const includedParts = setIncludes[setId];
-        // 含まれるパーツがすべてチェックされているか確認
-        const allIncludedPartsChecked = includedParts.every(partId => checkedParts.includes(partId));
-        // セットメニュー自体がチェックされていないことを確認
-        const setCheckbox = document.getElementById(setId);
-        if (allIncludedPartsChecked && setCheckbox && !setCheckbox.checked) {
-            setCheckbox.checked = true;
-        }
-    }
-
-    // 2. すべてのチェックボックスの状態をリセット
+    // 1. すべてのチェックボックスをリセット
     checkboxes.forEach(cb => {
         cb.disabled = false;
         const parent = cb.parentElement;
@@ -138,26 +131,37 @@ function updateCalculation() {
         }
     });
 
-    // 3. セットメニューに含まれるパーツを無効化
-    checkboxes.forEach(cb => {
-        if (cb.checked && menuData[cb.id]?.type === 'set') {
-            const included = setIncludes[cb.id];
-            if (included) {
-                included.forEach(includedId => {
-                    const includedCheckbox = document.getElementById(includedId);
-                    if (includedCheckbox) {
-                        includedCheckbox.disabled = true;
-                        includedCheckbox.checked = false;
-                        const parent = includedCheckbox.parentElement;
-                        if (parent) {
-                            parent.style.color = '#ccc';
-                        }
-                    }
-                });
+    // 2. パーツからセットへの自動切り替え
+    const checkedParts = Array.from(checkboxes).filter(cb => cb.checked && menuData[cb.id]?.type === 'part').map(cb => cb.id);
+    for (const setId in setIncludes) {
+        const includedParts = getIncludedItems(setId).filter(id => menuData[id]?.type === 'part');
+        const setCheckbox = document.getElementById(setId);
+        if (setCheckbox && includedParts.length > 0) {
+            const allIncludedPartsChecked = includedParts.every(partId => checkedParts.includes(partId));
+            if (allIncludedPartsChecked) {
+                setCheckbox.checked = true;
             }
         }
-    });
+    }
 
+    // 3. セットメニューに含まれる全メニューを無効化
+    checkboxes.forEach(cb => {
+        if (cb.checked && menuData[cb.id]?.type === 'set') {
+            const includedItems = getIncludedItems(cb.id);
+            includedItems.forEach(includedId => {
+                const includedCheckbox = document.getElementById(includedId);
+                if (includedCheckbox) {
+                    includedCheckbox.disabled = true;
+                    includedCheckbox.checked = false;
+                    const parent = includedCheckbox.parentElement;
+                    if (parent) {
+                        parent.style.color = '#ccc';
+                    }
+                }
+            });
+        }
+    });
+    
     // 4. 計算と表示
     let totalTime = 0;
     let totalPrice = 0;
@@ -175,11 +179,11 @@ function updateCalculation() {
         }
     });
 
-    // 合計時間を30分単位で切り上げ
+    // 合計時間を30分単位で切り上げ、.5/.0表記
     const roundedTimeMinutes = Math.ceil(totalTime / 30) * 30;
     const hours = Math.floor(roundedTimeMinutes / 60);
     const minutes = roundedTimeMinutes % 60;
-    const formattedMinutes = String(minutes).padStart(2, '0');
+    const formattedMinutes = minutes === 30 ? '5' : '0';
     const formattedTime = `${hours}.${formattedMinutes}`;
 
     if (totalPriceElement) {
