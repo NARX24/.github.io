@@ -1,228 +1,172 @@
-document.addEventListener('DOMContentLoaded', (event) => {
-    const menuData = {
-        'set_eyebrow': { name: '眉毛セット', time: 40, price: 11000, parts: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'] },
-        'set_fullface': { name: '全顔セット', time: 65, price: 13200, parts: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'] },
-        'set_fullface_eyebrow': { name: '全顔+眉毛脱毛セット', time: 105, price: 22000, parts: ['set_fullface', 'set_eyebrow'] },
-        'set_fullbody_all': { name: '全身オール（顔、VIO含む）', time: 270, price: 52800, parts: ['set_upperbody', 'set_lowerbody'] },
-        'set_fullbody_noface': { name: '顔なし全身', time: 200, price: 41800, parts: ['part_armpit', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_chest_nipple', 'part_abdomen_navel', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger', 'part_v_line', 'part_i_line', 'part_o_line', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
-        'set_upperbody': { name: '上半身セット', time: 170, price: 30800, parts: ['set_fullface', 'part_armpit', 'part_chest_nipple', 'part_abdomen_navel', 'part_nape', 'part_back_upper', 'part_back_lower', 'part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
-        'set_lowerbody': { name: '下半身セット', time: 150, price: 30800, parts: ['set_vio', 'part_buttocks', 'part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
-        'set_vio': { name: 'VIOセット', time: 50, price: 16500, parts: ['part_v_line', 'part_i_line', 'part_o_line'] },
-        'set_fullface_vio': { name: '全顔+VIOセット', time: 100, price: 27500, parts: ['set_fullface', 'set_vio'] },
-        'set_vio_buttocks': { name: 'VIO+臀部（おしり）セット', time: 60, price: 20900, parts: ['set_vio', 'part_buttocks'] },
-        'set_navel_vio': { name: 'ヘソ下+VIOセット', time: 55, price: 18700, parts: ['part_navel_under', 'set_vio'] },
-        'set_chest_abdomen': { name: '胸＋腹部セット', time: 35, price: 9900, parts: ['part_chest_nipple', 'part_abdomen_navel'] },
-        'set_arms_legs': { name: '両腕+両足セット', time: 125, price: 28600, parts: ['set_arms', 'set_legs'] },
-        'set_arms': { name: '両腕セット', time: 65, price: 17600, parts: ['part_elbow_upper', 'part_elbow_lower', 'part_hand_finger'] },
-        'set_legs': { name: '両足セット', time: 65, price: 17600, parts: ['part_knee_upper', 'part_knee_lower', 'part_foot_toe'] },
-        'set_ear_whole': { name: '耳全体（耳珠、耳たぶ含む）', time: 25, price: 8800, parts: ['part_tragus', 'part_earlobe'] },
-        'part_nose_under': { name: '鼻下', time: 16, price: 4400, isPart: true },
-        'part_mouth_under': { name: '口下', time: 16, price: 4400, isPart: true },
-        'part_cheek': { name: '頬', time: 16, price: 4400, isPart: true },
-        'part_face_line': { name: 'フェイスライン', time: 16, price: 4400, isPart: true },
-        'part_neck': { name: '首', time: 16, price: 4400, isPart: true },
-        'part_nape': { name: 'うなじ', time: 16, price: 4400, isPart: true },
-        'part_armpit': { name: '脇', time: 13, price: 4400, isPart: true },
-        'part_chest_nipple': { name: '胸（乳輪周り含む）', time: 16, price: 6600, isPart: true },
-        'part_abdomen_navel': { name: '腹部（ヘソ下含む）', time: 16, price: 6600, isPart: true },
-        'part_back_upper': { name: '背中上', time: 16, price: 6600, isPart: true },
-        'part_back_lower': { name: '背中下', time: 16, price: 6600, isPart: true },
-        'part_buttocks': { name: '臀部（おしり）', time: 16, price: 6600, isPart: true },
-        'part_elbow_upper': { name: '肘上', time: 16, price: 6600, isPart: true },
-        'part_elbow_lower': { name: '肘下', time: 18, price: 6600, isPart: true },
-        'part_hand_finger': { name: '手の甲+指', time: 12, price: 4400, isPart: true },
-        'part_knee_upper': { name: '膝上', time: 35, price: 8800, isPart: true },
-        'part_knee_lower': { name: '膝下', time: 35, price: 8800, isPart: true },
-        'part_foot_toe': { name: '足の甲＋指', time: 12, price: 4400, isPart: true },
-        'part_v_line': { name: 'Vライン', time: 16, price: 7700, isPart: true },
-        'part_i_line': { name: 'Iライン', time: 20, price: 7700, isPart: true },
-        'part_o_line': { name: 'Oライン', time: 16, price: 5500, isPart: true },
-        'part_forehead': { name: 'おでこ', time: 13, price: 4400, isPart: true },
-        'part_eyebrow_upper': { name: '眉上', time: 13, price: 4400, isPart: true },
-        'part_eyebrow_lower': { name: '眉下', time: 13, price: 6600, isPart: true },
-        'part_eyebrow_middle': { name: '眉中', time: 13, price: 2200, isPart: true },
-        'part_small_nose': { name: '小鼻', time: 13, price: 4400, isPart: true },
-        'part_nose_hair': { name: '鼻毛', time: 20, price: 4400, isPart: true },
-        'part_tragus': { name: '耳珠', time: 13, price: 3300, isPart: true },
-        'part_earlobe': { name: '耳たぶ', time: 13, price: 4400, isPart: true },
-        'part_nipple': { name: '乳輪周り', time: 10, price: 4400, isPart: true },
-        'part_navel_under': { name: 'ヘソ下', time: 10, price: 4400, isPart: true },
-        'part_design_fee': { name: 'デザイン料', time: 0, price: 1100, isPart: true },
-        'other_lala_peel': { name: 'ララピール', time: 90, price: 12100 },
-        'other_face_correction': { name: '小顔矯正術', time: 90, price: 22000 },
-        'other_derma_scalp': { name: 'ダーマインジェクション（スカルプケア）', time: 50, price: 22000 },
-        'other_derma_skin': { name: 'ダーマインジェクション（肌育ケア）', time: 50, price: 22000 },
-    };
+// 料金と時間のデータを一元管理するオブジェクト
+const menuData = {
+  // セットメニュー
+  set_eyebrow: { time: 40, price: 11000, label: '眉毛セット' },
+  set_fullface: { time: 65, price: 13200, label: '全顔セット' },
+  set_fullface_eyebrow: { time: 105, price: 22000, label: '全顔+眉毛脱毛セット' },
+  set_fullbody_all: { time: 270, price: 52800, label: '全身オール（顔、VIO含む）' },
+  set_fullbody_noface: { time: 200, price: 41800, label: '顔なし全身' },
+  set_upperbody: { time: 170, price: 30800, label: '上半身セット' },
+  set_lowerbody: { time: 150, price: 30800, label: '下半身セット' },
+  set_vio: { time: 50, price: 16500, label: 'VIOセット' },
+  set_fullface_vio: { time: 100, price: 27500, label: '全顔+VIOセット' },
+  set_vio_buttocks: { time: 60, price: 20900, label: 'VIO+臀部（おしり）セット' },
+  set_navel_vio: { time: 55, price: 18700, label: 'ヘソ下+VIOセット' },
+  set_chest_abdomen: { time: 35, price: 9900, label: '胸＋腹部セット' },
+  set_arms_legs: { time: 125, price: 28600, label: '両腕+両足セット' },
+  set_arms: { time: 65, price: 17600, label: '両腕セット' },
+  set_legs: { time: 65, price: 17600, label: '両足セット' },
+  set_ear_whole: { time: 25, price: 8800, label: '耳全体（耳珠、耳たぶ含む）' },
 
-    const findMenuDataById = (id) => menuData[id];
+  // パーツメニュー
+  part_nose_under: { time: 16, price: 4400, label: '鼻下' },
+  part_mouth_under: { time: 16, price: 4400, label: '口下' },
+  part_cheek: { time: 16, price: 4400, label: '頬' },
+  part_face_line: { time: 16, price: 4400, label: 'フェイスライン' },
+  part_neck: { time: 16, price: 4400, label: '首' },
+  part_nape: { time: 16, price: 4400, label: 'うなじ' },
+  part_armpit: { time: 13, price: 4400, label: '脇' },
+  part_chest_nipple: { time: 16, price: 6600, label: '胸（乳輪周り含む）' },
+  part_abdomen_navel: { time: 16, price: 6600, label: '腹部（ヘソ下含む）' },
+  part_back_upper: { time: 16, price: 6600, label: '背中上' },
+  part_back_lower: { time: 16, price: 6600, label: '背中下' },
+  part_buttocks: { time: 16, price: 6600, label: '臀部（おしり）' },
+  part_elbow_upper: { time: 16, price: 6600, label: '肘上' },
+  part_elbow_lower: { time: 18, price: 6600, label: '肘下' },
+  part_hand_finger: { time: 12, price: 4400, label: '手の甲+指' },
+  part_knee_upper: { time: 35, price: 8800, label: '膝上' },
+  part_knee_lower: { time: 35, price: 8800, label: '膝下' },
+  part_foot_toe: { time: 12, price: 4400, label: '足の甲＋指' },
+  part_v_line: { time: 16, price: 7700, label: 'Vライン' },
+  part_i_line: { time: 20, price: 7700, label: 'Iライン' },
+  part_o_line: { time: 16, price: 5500, label: 'Oライン' },
+  part_forehead: { time: 13, price: 4400, label: 'おでこ' },
+  part_eyebrow_upper: { time: 13, price: 4400, label: '眉上' },
+  part_eyebrow_lower: { time: 13, price: 6600, label: '眉下' },
+  part_eyebrow_middle: { time: 13, price: 2200, label: '眉中' },
+  part_small_nose: { time: 13, price: 4400, label: '小鼻' },
+  part_nose_hair: { time: 20, price: 4400, label: '鼻毛' },
+  part_tragus: { time: 13, price: 3300, label: '耳珠' },
+  part_earlobe: { time: 13, price: 4400, label: '耳たぶ' },
+  part_nipple: { time: 10, price: 4400, label: '乳輪周り' },
+  part_navel_under: { time: 10, price: 4400, label: 'ヘソ下' },
+  part_design_fee: { time: 0, price: 0, label: 'デザイン料' },
+  
+  // その他メニュー
+  other_lala_peel: { time: 90, price: 12100, label: 'ララピール' },
+  other_face_correction: { time: 90, price: 22000, label: '小顔矯正術' },
+  other_derma_scalp: { time: 50, price: 22000, label: 'ダーマインジェクション（スカルプケア）' },
+  other_derma_skin: { time: 50, price: 22000, label: 'ダーマインジェクション（肌育ケア）' },
+};
 
-    const getContainedParts = (setId) => {
-        const parts = new Set();
-        const queue = [setId];
-        const visitedSets = new Set();
-        while (queue.length > 0) {
-            const currentId = queue.shift();
-            const currentData = findMenuDataById(currentId);
-            if (currentData && currentData.parts && !visitedSets.has(currentId)) {
-                visitedSets.add(currentId);
-                currentData.parts.forEach(partId => {
-                    const partData = findMenuDataById(partId);
-                    if (partData && partData.isPart) {
-                        parts.add(partId);
-                    } else if (partData && partData.parts) {
-                        queue.push(partId);
-                    }
-                });
-            } else if (currentData && currentData.isPart) {
-                parts.add(currentId);
-            }
-        }
-        return Array.from(parts);
-    };
+// 選択されたメニューの情報を格納する配列
+let selectedItems = [];
 
-    const allSetsSorted = Object.keys(menuData)
-        .filter(id => id.startsWith('set_'))
-        .sort((a, b) => getContainedParts(b).length - getContainedParts(a).length);
+// DOM要素の取得
+const totalPriceElement = document.getElementById('totalPrice');
+const totalTimeElement = document.getElementById('totalTime');
+const messageArea = document.getElementById('message-area');
+const copyButton = document.getElementById('copyButton');
 
-    const updateUIAndCalculate = () => {
-        const currentCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
-        const currentCheckedSets = new Set(Array.from(document.querySelectorAll('input[id^="set_"]:checked')).map(cb => cb.id));
-        const currentCheckedOthers = new Set(Array.from(document.querySelectorAll('input[id^="other_"]:checked')).map(cb => cb.id));
-
-        let autoSelectedSetId = null;
-        for (const setId of allSetsSorted) {
-            const partsInSet = new Set(getContainedParts(setId));
-            if (partsInSet.size > 0 && Array.from(partsInSet).every(partId => currentCheckedParts.has(partId))) {
-                autoSelectedSetId = setId;
-                break;
-            }
-        }
-
-        let totalTime = 0;
-        let totalPrice = 0;
-        const selectedMenus = [];
-        const processedIds = new Set();
-
-        if (autoSelectedSetId) {
-            const set = findMenuDataById(autoSelectedSetId);
-            if (set) {
-                totalTime += set.time;
-                totalPrice += set.price;
-                const partsText = getContainedParts(autoSelectedSetId).map(partId => findMenuDataById(partId).name).join('、');
-                selectedMenus.push({
-                    name: set.name,
-                    time: set.time,
-                    price: set.price,
-                    parts: partsText
-                });
-                getContainedParts(autoSelectedSetId).forEach(partId => processedIds.add(partId));
-            }
-        } else {
-            Array.from(currentCheckedSets).forEach(setId => {
-                const set = findMenuDataById(setId);
-                if (set) {
-                    totalTime += set.time;
-                    totalPrice += set.price;
-                    selectedMenus.push({
-                        name: set.name,
-                        time: set.time,
-                        price: set.price
-                    });
-                }
-            });
-        }
-
-        currentCheckedParts.forEach(partId => {
-            if (!processedIds.has(partId)) {
-                const menu = findMenuDataById(partId);
-                if (menu) {
-                    totalTime += menu.time;
-                    totalPrice += menu.price;
-                    selectedMenus.push({
-                        name: menu.name,
-                        time: menu.time,
-                        price: menu.price
-                    });
-                }
-            }
-        });
-
-        currentCheckedOthers.forEach(otherId => {
-            const menu = findMenuDataById(otherId);
-            if (menu) {
-                totalTime += menu.time;
-                totalPrice += menu.price;
-                selectedMenus.push({
-                    name: menu.name,
-                    time: menu.time,
-                    price: menu.price
-                });
-            }
-        });
-
-        // UIの状態を更新
-        document.querySelectorAll('input[id^="set_"]').forEach(cb => {
-            cb.checked = (cb.id === autoSelectedSetId);
-        });
-
-        document.querySelectorAll('input[id^="part_"]').forEach(cb => {
-            if (processedIds.has(cb.id)) {
-                cb.disabled = true;
-                cb.checked = false;
-            } else {
-                cb.disabled = false;
-            }
-        });
-
-        const totalTimeElement = document.getElementById('totalTime');
-        const totalPriceElement = document.getElementById('totalPrice');
-        const messageArea = document.getElementById('message-area');
-        const copyButton = document.getElementById('copyButton');
-
-        if (totalTimeElement && totalPriceElement && messageArea && copyButton) {
-            const roundedTime = Math.ceil(totalTime / 30) * 30;
-            const totalHours = roundedTime / 60;
-
-            totalTimeElement.value = totalHours.toFixed(1).replace(/\.0$/, '');
-            totalPriceElement.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-
-            let messageText = '選択した部位:\n';
-            if (selectedMenus.length > 0) {
-                messageText += selectedMenus.map(menu => {
-                    const parts = menu.parts ? `＜${menu.parts}＞` : '';
-                    return `【${menu.name}】 税込 ${menu.price.toLocaleString()}円 ${parts}`;
-                }).join('\n');
-            } else {
-                messageText += 'なし';
-            }
-            messageText += `\n---\n合計時間: ${Math.floor(roundedTime / 60)}時間${roundedTime % 60}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-            messageArea.value = messageText;
-
-            copyButton.onclick = function() {
-                let finalCopyText = '選択した部位:\n';
-                if (selectedMenus.length > 0) {
-                    finalCopyText += selectedMenus.map(menu => `【${menu.name}】 税込 ${menu.price.toLocaleString()}円`).join('\n');
-                } else {
-                    finalCopyText += 'なし';
-                }
-                finalCopyText += `\n---\n合計時間: ${Math.floor(roundedTime / 60)}時間${roundedTime % 60}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-
-                navigator.clipboard.writeText(finalCopyText)
-                    .then(() => {
-                        alert(`選択内容がコピーされました！\nご予約メニュー【${totalTimeElement.value}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
-                    })
-                    .catch(err => {
-                        console.error('コピーに失敗しました', err);
-                    });
-            };
-        } else {
-            console.error("必要なDOM要素が見つかりません。HTMLファイルを確認してください。");
-        }
-    };
-
-    document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', updateUIAndCalculate);
-    });
-
-    updateUIAndCalculate();
+// すべてのチェックボックスにイベントリスナーを追加
+const checkboxes = document.querySelectorAll('input[type="checkbox"]');
+checkboxes.forEach(checkbox => {
+  checkbox.addEventListener('change', updateCalculation);
 });
+
+// コピーボタンにイベントリスナーを追加
+if (copyButton) {
+  copyButton.addEventListener('click', copyMessage);
+}
+
+// 初期計算
+updateCalculation();
+
+/**
+ * 計算を更新するメイン関数
+ */
+function updateCalculation() {
+  let totalTime = 0;
+  let totalPrice = 0;
+  selectedItems = [];
+
+  checkboxes.forEach(checkbox => {
+    if (checkbox.checked) {
+      const id = checkbox.id;
+      const item = menuData[id];
+
+      // itemがundifinedでないか確認
+      if (item) {
+        totalTime += item.time;
+        totalPrice += item.price;
+        selectedItems.push(item);
+      }
+    }
+  });
+
+  // 結果の表示を更新
+  if (totalPriceElement) {
+    totalPriceElement.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+  }
+  if (totalTimeElement) {
+    totalTimeElement.value = (totalTime / 60).toFixed(2);
+  }
+
+  // テキストエリアのメッセージを更新
+  updateMessageArea();
+}
+
+/**
+ * メッセージエリアのテキストを更新
+ */
+function updateMessageArea() {
+  let message = "選択した部位:\n";
+  let hasSetMenu = false;
+  let hasPartsMenu = false;
+  let hasOtherMenu = false;
+
+  const selectedSets = selectedItems.filter(item => item.label.includes('セット') || item.label.includes('全体'));
+  if (selectedSets.length > 0) {
+    hasSetMenu = true;
+    message += selectedSets.map(item => `・${item.label} 税込 ${item.price.toLocaleString()}円`).join('\n') + '\n\n';
+  }
+
+  const selectedParts = selectedItems.filter(item => !item.label.includes('セット') && !item.label.includes('全体') && !item.label.includes('矯正') && !item.label.includes('ピール') && !item.label.includes('インジェクション'));
+  if (selectedParts.length > 0) {
+    hasPartsMenu = true;
+    message += 'パーツメニュー:\n';
+    message += selectedParts.map(item => `・${item.label} 税込 ${item.price.toLocaleString()}円`).join('\n') + '\n\n';
+  }
+
+  const selectedOthers = selectedItems.filter(item => item.label.includes('矯正') || item.label.includes('ピール') || item.label.includes('インジェクション'));
+  if (selectedOthers.length > 0) {
+    hasOtherMenu = true;
+    message += 'その他メニュー:\n';
+    message += selectedOthers.map(item => `・${item.label} 税込 ${item.price.toLocaleString()}円`).join('\n') + '\n\n';
+  }
+  
+  if (!hasSetMenu && !hasPartsMenu && !hasOtherMenu) {
+    message = "選択されたメニューはありません。";
+  }
+
+  const totalTime = selectedItems.reduce((sum, item) => sum + item.time, 0);
+  const totalPrice = selectedItems.reduce((sum, item) => sum + item.price, 0);
+  
+  message += `合計時間: ${Math.floor(totalTime / 60)}時間${totalTime % 60}分\n`;
+  message += `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+
+  if (messageArea) {
+    messageArea.value = message;
+  }
+}
+
+/**
+ * テキストエリアの内容をクリップボードにコピー
+ */
+function copyMessage() {
+  if (messageArea) {
+    messageArea.select();
+    document.execCommand('copy');
+    alert('選択内容をコピーしました！');
+  }
+}
