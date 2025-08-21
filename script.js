@@ -87,45 +87,47 @@ document.addEventListener('DOMContentLoaded', (event) => {
         .sort((a, b) => getContainedParts(b).length - getContainedParts(a).length);
 
     window.keisan = function() {
-        const checkedState = new Map();
+        // 1. まず、全てのチェックボックスの状態をリセット
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            checkedState.set(cb.id, cb.checked);
+            cb.disabled = false;
         });
 
-        // 1. パーツ選択によるセットメニューの自動選択
+        // 2. 現在のパーツ選択状態を把握
+        const currentCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
+        
+        // 3. 自動選択すべきセットを決定
         let autoSelectedSetId = null;
         for (const setId of allSetsSorted) {
             const partsInSet = getContainedParts(setId);
-            if (partsInSet.length > 0 && partsInSet.every(partId => checkedState.get(partId))) {
+            if (partsInSet.length > 0 && partsInSet.every(partId => currentCheckedParts.has(partId))) {
                 autoSelectedSetId = setId;
                 break;
             }
         }
 
-        // 2. 最終的な計算対象の決定と無効化
+        // 4. 最終的な計算対象の決定とUIの更新
         let totalTime = 0;
         let totalPrice = 0;
         const selectedMenus = [];
         const processedIds = new Set();
-
+        
+        // セットメニューの処理
         if (autoSelectedSetId) {
             const set = findMenuDataById(autoSelectedSetId);
-            if (set) {
-                totalTime += set.time;
-                totalPrice += set.price;
-                const partsText = getContainedParts(autoSelectedSetId).map(partId => findMenuDataById(partId).name).join('、');
-                selectedMenus.push({
-                    name: set.name,
-                    time: set.time,
-                    price: set.price,
-                    parts: partsText
-                });
-                getContainedParts(autoSelectedSetId).forEach(partId => processedIds.add(partId));
-            }
+            totalTime += set.time;
+            totalPrice += set.price;
+            const partsText = getContainedParts(autoSelectedSetId).map(partId => findMenuDataById(partId).name).join('、');
+            selectedMenus.push({
+                name: set.name,
+                time: set.time,
+                price: set.price,
+                parts: partsText
+            });
+            getContainedParts(autoSelectedSetId).forEach(partId => processedIds.add(partId));
         }
 
+        // 個別に選択されたパーツとその他のメニューを計算
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-            checkbox.disabled = false;
             if (checkbox.checked && !processedIds.has(checkbox.id) && !checkbox.id.startsWith('set_')) {
                 const menu = findMenuDataById(checkbox.id);
                 if (menu) {
@@ -140,20 +142,23 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         });
 
-        // 3. UIの状態を最終的に更新
+        // UIの状態を最終的に更新
         document.querySelectorAll('input[id^="set_"]').forEach(cb => {
             cb.checked = (cb.id === autoSelectedSetId);
         });
         document.querySelectorAll('input[id^="part_"]').forEach(cb => {
-            const partsInSelectedSet = autoSelectedSetId ? getContainedParts(autoSelectedSetId) : [];
-            if (partsInSelectedSet.includes(cb.id)) {
+            if (processedIds.has(cb.id)) {
                 cb.disabled = true;
                 cb.checked = false;
+            } else {
+                cb.disabled = false;
             }
         });
+        document.querySelectorAll('input[id^="other_"]').forEach(cb => {
+            cb.disabled = false;
+        });
 
-
-        // 4. 表示の更新とコピー機能
+        // 5. 表示の更新とコピー機能
         const roundedTime = Math.ceil(totalTime / 30) * 30;
         const totalHours = roundedTime / 60;
         
