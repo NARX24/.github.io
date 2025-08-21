@@ -86,6 +86,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     const updateUIAndCalculate = () => {
         const currentCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
+        const currentCheckedSets = new Set(Array.from(document.querySelectorAll('input[id^="set_"]:checked')).map(cb => cb.id));
         const currentCheckedOthers = new Set(Array.from(document.querySelectorAll('input[id^="other_"]:checked')).map(cb => cb.id));
 
         let autoSelectedSetId = null;
@@ -117,8 +118,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 getContainedParts(autoSelectedSetId).forEach(partId => processedIds.add(partId));
             }
         } else {
-            Array.from(document.querySelectorAll('input[id^="set_"]:checked')).forEach(checkbox => {
-                const set = findMenuDataById(checkbox.id);
+            Array.from(currentCheckedSets).forEach(setId => {
+                const set = findMenuDataById(setId);
                 if (set) {
                     totalTime += set.time;
                     totalPrice += set.price;
