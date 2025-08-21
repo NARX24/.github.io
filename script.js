@@ -56,6 +56,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     const findMenuDataById = (id) => menuData[id];
 
+    // セットメニューが包含するすべてのパーツIDを再帰的に取得するヘルパー関数
     const getContainedParts = (setId) => {
         const parts = new Set();
         const queue = [setId];
@@ -80,26 +81,27 @@ document.addEventListener('DOMContentLoaded', (event) => {
         return Array.from(parts);
     };
 
+    // すべてのセットのIDを、包含するパーツの数が多い順にソート
     const allSetsSorted = Object.keys(menuData)
         .filter(id => id.startsWith('set_'))
         .sort((a, b) => getContainedParts(b).length - getContainedParts(a).length);
 
     const updateUIAndCalculate = () => {
-        const currentCheckedIds = new Set(Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(cb => cb.id));
+        const currentCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
+        const currentCheckedSets = new Set(Array.from(document.querySelectorAll('input[id^="set_"]:checked')).map(cb => cb.id));
+        const currentCheckedOthers = new Set(Array.from(document.querySelectorAll('input[id^="other_"]:checked')).map(cb => cb.id));
 
-        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
-            cb.disabled = false;
-        });
-
+        // 自動選択すべきセットを決定
         let autoSelectedSetId = null;
         for (const setId of allSetsSorted) {
             const partsInSet = new Set(getContainedParts(setId));
-            if (partsInSet.size > 0 && Array.from(partsInSet).every(partId => currentCheckedIds.has(partId))) {
+            if (partsInSet.size > 0 && Array.from(partsInSet).every(partId => currentCheckedParts.has(partId))) {
                 autoSelectedSetId = setId;
                 break;
             }
         }
 
+        // 最終的な計算
         let totalTime = 0;
         let totalPrice = 0;
         const selectedMenus = [];
@@ -119,11 +121,24 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 });
                 getContainedParts(autoSelectedSetId).forEach(partId => processedIds.add(partId));
             }
+        } else {
+            for (const setId of currentCheckedSets) {
+                const set = findMenuDataById(setId);
+                if (set) {
+                    totalTime += set.time;
+                    totalPrice += set.price;
+                    selectedMenus.push({
+                        name: set.name,
+                        time: set.time,
+                        price: set.price
+                    });
+                }
+            }
         }
 
-        document.querySelectorAll('input[id^="part_"]').forEach(checkbox => {
-            if (checkbox.checked && !processedIds.has(checkbox.id)) {
-                const menu = findMenuDataById(checkbox.id);
+        for (const partId of currentCheckedParts) {
+            if (!processedIds.has(partId)) {
+                const menu = findMenuDataById(partId);
                 if (menu) {
                     totalTime += menu.time;
                     totalPrice += menu.price;
@@ -134,22 +149,22 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     });
                 }
             }
-        });
-        document.querySelectorAll('input[id^="other_"]').forEach(checkbox => {
-            if (checkbox.checked) {
-                const menu = findMenuDataById(checkbox.id);
-                if (menu) {
-                    totalTime += menu.time;
-                    totalPrice += menu.price;
-                    selectedMenus.push({
-                        name: menu.name,
-                        time: menu.time,
-                        price: menu.price
-                    });
-                }
-            }
-        });
+        }
         
+        for (const otherId of currentCheckedOthers) {
+            const menu = findMenuDataById(otherId);
+            if (menu) {
+                totalTime += menu.time;
+                totalPrice += menu.price;
+                selectedMenus.push({
+                    name: menu.name,
+                    time: menu.time,
+                    price: menu.price
+                });
+            }
+        }
+
+        // UIの状態を更新
         document.querySelectorAll('input[id^="set_"]').forEach(cb => {
             cb.checked = (cb.id === autoSelectedSetId);
         });
@@ -162,11 +177,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 cb.disabled = false;
             }
         });
-
-        const roundedTime = Math.ceil(totalTime / 30) * 30;
-        const totalHours = roundedTime / 60;
         
-        document.getElementById('totalTime').value = totalHours.toFixed(1).replace(/\.0$/, '');
+        document.getElementById('totalTime').value = (Math.ceil(totalTime / 30) * 30 / 60).toFixed(1).replace(/\.0$/, '');
         document.getElementById('totalPrice').textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 
         let messageText = '選択した部位:\n';
