@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     const findMenuDataById = (id) => menuData[id];
 
-    // セットメニューが包含するすべてのパーツIDを再帰的に取得するヘルパー関数
     const getContainedParts = (setId) => {
         const parts = new Set();
         const queue = [setId];
@@ -81,17 +80,14 @@ document.addEventListener('DOMContentLoaded', (event) => {
         return Array.from(parts);
     };
 
-    // すべてのセットのIDを、包含するパーツの数が多い順にソート
     const allSetsSorted = Object.keys(menuData)
         .filter(id => id.startsWith('set_'))
         .sort((a, b) => getContainedParts(b).length - getContainedParts(a).length);
 
     const updateUIAndCalculate = () => {
         const currentCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
-        const currentCheckedSets = new Set(Array.from(document.querySelectorAll('input[id^="set_"]:checked')).map(cb => cb.id));
         const currentCheckedOthers = new Set(Array.from(document.querySelectorAll('input[id^="other_"]:checked')).map(cb => cb.id));
 
-        // 自動選択すべきセットを決定
         let autoSelectedSetId = null;
         for (const setId of allSetsSorted) {
             const partsInSet = new Set(getContainedParts(setId));
@@ -101,7 +97,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         }
 
-        // 最終的な計算
         let totalTime = 0;
         let totalPrice = 0;
         const selectedMenus = [];
@@ -122,8 +117,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 getContainedParts(autoSelectedSetId).forEach(partId => processedIds.add(partId));
             }
         } else {
-            for (const setId of currentCheckedSets) {
-                const set = findMenuDataById(setId);
+            Array.from(document.querySelectorAll('input[id^="set_"]:checked')).forEach(checkbox => {
+                const set = findMenuDataById(checkbox.id);
                 if (set) {
                     totalTime += set.time;
                     totalPrice += set.price;
@@ -133,10 +128,10 @@ document.addEventListener('DOMContentLoaded', (event) => {
                         price: set.price
                     });
                 }
-            }
+            });
         }
 
-        for (const partId of currentCheckedParts) {
+        currentCheckedParts.forEach(partId => {
             if (!processedIds.has(partId)) {
                 const menu = findMenuDataById(partId);
                 if (menu) {
@@ -149,9 +144,9 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     });
                 }
             }
-        }
-        
-        for (const otherId of currentCheckedOthers) {
+        });
+
+        currentCheckedOthers.forEach(otherId => {
             const menu = findMenuDataById(otherId);
             if (menu) {
                 totalTime += menu.time;
@@ -162,7 +157,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
                     price: menu.price
                 });
             }
-        }
+        });
 
         // UIの状態を更新
         document.querySelectorAll('input[id^="set_"]').forEach(cb => {
@@ -177,40 +172,51 @@ document.addEventListener('DOMContentLoaded', (event) => {
                 cb.disabled = false;
             }
         });
-        
-        document.getElementById('totalTime').value = (Math.ceil(totalTime / 30) * 30 / 60).toFixed(1).replace(/\.0$/, '');
-        document.getElementById('totalPrice').textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 
-        let messageText = '選択した部位:\n';
-        if (selectedMenus.length > 0) {
-            messageText += selectedMenus.map(menu => {
-                const parts = menu.parts ? `＜${menu.parts}＞` : '';
-                return `【${menu.name}】 税込 ${menu.price.toLocaleString()}円 ${parts}`;
-            }).join('\n');
-        } else {
-            messageText += 'なし';
-        }
-        messageText += `\n---\n合計時間: ${Math.floor(roundedTime / 60)}時間${roundedTime % 60}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-        document.getElementById('message-area').value = messageText;
-
+        const totalTimeElement = document.getElementById('totalTime');
+        const totalPriceElement = document.getElementById('totalPrice');
+        const messageArea = document.getElementById('message-area');
         const copyButton = document.getElementById('copyButton');
-        copyButton.onclick = function() {
-            let finalCopyText = '選択した部位:\n';
-            if (selectedMenus.length > 0) {
-                finalCopyText += selectedMenus.map(menu => `【${menu.name}】 税込 ${menu.price.toLocaleString()}円`).join('\n');
-            } else {
-                finalCopyText += 'なし';
-            }
-            finalCopyText += `\n---\n合計時間: ${Math.floor(roundedTime / 60)}時間${roundedTime % 60}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 
-            navigator.clipboard.writeText(finalCopyText)
-                .then(() => {
-                    alert(`選択内容がコピーされました！\nご予約メニュー【${document.getElementById('totalTime').value}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
-                })
-                .catch(err => {
-                    console.error('コピーに失敗しました', err);
-                });
-        };
+        if (totalTimeElement && totalPriceElement && messageArea && copyButton) {
+            const roundedTime = Math.ceil(totalTime / 30) * 30;
+            const totalHours = roundedTime / 60;
+
+            totalTimeElement.value = totalHours.toFixed(1).replace(/\.0$/, '');
+            totalPriceElement.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+
+            let messageText = '選択した部位:\n';
+            if (selectedMenus.length > 0) {
+                messageText += selectedMenus.map(menu => {
+                    const parts = menu.parts ? `＜${menu.parts}＞` : '';
+                    return `【${menu.name}】 税込 ${menu.price.toLocaleString()}円 ${parts}`;
+                }).join('\n');
+            } else {
+                messageText += 'なし';
+            }
+            messageText += `\n---\n合計時間: ${Math.floor(roundedTime / 60)}時間${roundedTime % 60}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+            messageArea.value = messageText;
+
+            copyButton.onclick = function() {
+                let finalCopyText = '選択した部位:\n';
+                if (selectedMenus.length > 0) {
+                    finalCopyText += selectedMenus.map(menu => `【${menu.name}】 税込 ${menu.price.toLocaleString()}円`).join('\n');
+                } else {
+                    finalCopyText += 'なし';
+                }
+                finalCopyText += `\n---\n合計時間: ${Math.floor(roundedTime / 60)}時間${roundedTime % 60}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+
+                navigator.clipboard.writeText(finalCopyText)
+                    .then(() => {
+                        alert(`選択内容がコピーされました！\nご予約メニュー【${totalTimeElement.value}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
+                    })
+                    .catch(err => {
+                        console.error('コピーに失敗しました', err);
+                    });
+            };
+        } else {
+            console.error("必要なDOM要素が見つかりません。HTMLファイルを確認してください。");
+        }
     };
 
     document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
