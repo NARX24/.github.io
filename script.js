@@ -56,7 +56,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
     const findMenuDataById = (id) => menuData[id];
 
-    // セットメニューが包含するすべてのパーツIDを再帰的に取得するヘルパー関数
     const getContainedParts = (setId) => {
         const parts = new Set();
         const queue = [setId];
@@ -81,22 +80,25 @@ document.addEventListener('DOMContentLoaded', (event) => {
         return Array.from(parts);
     };
 
-    // すべてのセットのIDを、包含するパーツの数が多い順にソート
     const allSetsSorted = Object.keys(menuData)
         .filter(id => id.startsWith('set_'))
         .sort((a, b) => getContainedParts(b).length - getContainedParts(a).length);
 
-    window.keisan = function() {
-        // 1. まず、全てのチェックボックスの状態をリセット
+    const updateUIAndCalculate = () => {
+        // 全てのチェックボックスの状態を取得し、マップに保存
+        const checkedStates = new Map();
+        document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+            checkedStates.set(cb.id, cb.checked);
+        });
+
+        // 全てのチェックボックスを一旦リセット
         document.querySelectorAll('input[type="checkbox"]').forEach(cb => {
             cb.disabled = false;
         });
 
-        // 2. 現在のパーツ選択状態を把握
-        const currentCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
-        
-        // 3. 自動選択すべきセットを決定
+        // パーツ選択による自動選択の判定
         let autoSelectedSetId = null;
+        const currentCheckedParts = new Set(Array.from(document.querySelectorAll('input[id^="part_"]:checked')).map(cb => cb.id));
         for (const setId of allSetsSorted) {
             const partsInSet = getContainedParts(setId);
             if (partsInSet.length > 0 && partsInSet.every(partId => currentCheckedParts.has(partId))) {
@@ -105,13 +107,12 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         }
 
-        // 4. 最終的な計算対象の決定とUIの更新
+        // 最終的な計算対象の決定
         let totalTime = 0;
         let totalPrice = 0;
         const selectedMenus = [];
         const processedIds = new Set();
-        
-        // セットメニューの処理
+
         if (autoSelectedSetId) {
             const set = findMenuDataById(autoSelectedSetId);
             totalTime += set.time;
@@ -126,7 +127,6 @@ document.addEventListener('DOMContentLoaded', (event) => {
             getContainedParts(autoSelectedSetId).forEach(partId => processedIds.add(partId));
         }
 
-        // 個別に選択されたパーツとその他のメニューを計算
         document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
             if (checkbox.checked && !processedIds.has(checkbox.id) && !checkbox.id.startsWith('set_')) {
                 const menu = findMenuDataById(checkbox.id);
@@ -142,7 +142,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             }
         });
 
-        // UIの状態を最終的に更新
+        // UIの状態を更新
         document.querySelectorAll('input[id^="set_"]').forEach(cb => {
             cb.checked = (cb.id === autoSelectedSetId);
         });
@@ -158,16 +158,11 @@ document.addEventListener('DOMContentLoaded', (event) => {
             cb.disabled = false;
         });
 
-        // 5. 表示の更新とコピー機能
         const roundedTime = Math.ceil(totalTime / 30) * 30;
         const totalHours = roundedTime / 60;
         
-        const totalTimeDisplay = document.getElementById('totalTime');
-        const totalPriceDisplay = document.getElementById('totalPrice');
-        const messageArea = document.getElementById('message-area');
-
-        totalTimeDisplay.value = totalHours.toFixed(1).replace(/\.0$/, '');
-        totalPriceDisplay.textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
+        document.getElementById('totalTime').value = totalHours.toFixed(1).replace(/\.0$/, '');
+        document.getElementById('totalPrice').textContent = `料金合計: ${totalPrice.toLocaleString()}円（税込）`;
 
         let messageText = '選択した部位:\n';
         if (selectedMenus.length > 0) {
@@ -179,7 +174,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
             messageText += 'なし';
         }
         messageText += `\n---\n合計時間: ${Math.floor(roundedTime / 60)}時間${roundedTime % 60}分\n料金合計: ${totalPrice.toLocaleString()}円（税込）`;
-        messageArea.value = messageText;
+        document.getElementById('message-area').value = messageText;
 
         const copyButton = document.getElementById('copyButton');
         copyButton.onclick = function() {
@@ -193,7 +188,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
 
             navigator.clipboard.writeText(finalCopyText)
                 .then(() => {
-                    alert(`選択内容がコピーされました！\nご予約メニュー【${totalTimeDisplay.value}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
+                    alert(`選択内容がコピーされました！\nご予約メニュー【${document.getElementById('totalTime').value}時間枠】を選択後、コピー内容を備考欄に貼り付けて下さい。\n---\n${finalCopyText}`);
                 })
                 .catch(err => {
                     console.error('コピーに失敗しました', err);
@@ -202,8 +197,8 @@ document.addEventListener('DOMContentLoaded', (event) => {
     };
 
     document.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
-        checkbox.addEventListener('change', window.keisan);
+        checkbox.addEventListener('change', updateUIAndCalculate);
     });
 
-    window.keisan();
+    updateUIAndCalculate();
 });
