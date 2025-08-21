@@ -60,7 +60,6 @@ const menuData = {
 };
 
 // セットメニューに含まれるパーツの関連付け（階層構造に対応）
-// 各セットが「直接」含む下位メニューIDを定義
 const setIncludes = {
     set_eyebrow: ['part_eyebrow_upper', 'part_eyebrow_lower', 'part_eyebrow_middle', 'part_design_fee'],
     set_fullface: ['part_nose_under', 'part_mouth_under', 'part_cheek', 'part_face_line', 'part_neck'],
@@ -233,6 +232,6 @@ function copyMessage() {
     if (messageArea) {
         messageArea.select();
         document.execCommand('copy');
-        alert('選択内容がコピーされました！\n\nご予約メニュー【●時間枠】を選択後、\nコピー内容ご予約時の［備考欄］に貼り付けて下さい。\n\n---\n選択した部位:\n【部位名】税込●円\n---\n合計時間:●時間●分\n料金合計:●円(税込)\n\n※上記が本来のコピー形式です。');
+        alert(messageArea.value);
     }
 }
