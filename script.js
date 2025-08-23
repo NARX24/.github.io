@@ -194,7 +194,7 @@ function updateCalculation() {
         totalTimeElement.value = formattedTime;
     }
 
-    // テキストエリアのメッセージを更新
+    // メッセージエリアのメッセージを更新
     updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime);
 }
 
@@ -202,8 +202,8 @@ function updateCalculation() {
  * メッセージエリアのテキストを更新
  */
 function updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime) {
-    let message = `ご予約メニュー【${formattedTime}時間枠】を選択後、\nコピー内容ご予約時の［備考欄］に貼り付けて下さい。\n\n`;
-
+    let message = `［①選択内容をコピー］ボタンをタップ。\n［②予約ページへ］ボタンをタップ。\n\nご予約メニュー時間枠の　【${formattedTime}時間枠】　を選択後、\nコピー内容ご予約時の［備考欄］に貼り付けて下さい。\n\n`;
+    
     if (selectedItems.length > 0) {
         message += "---" + "\n";
         message += "選択した部位:" + "\n";
@@ -229,7 +229,7 @@ function updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime) 
  * テキストエリアの内容をクリップボードにコピー
  */
 function copyMessage() {
-    // 選択されたメニュー情報を取得
+    // コピーしたいシンプルな内容を生成
     let totalTime = 0;
     let totalPrice = 0;
     const selectedItems = [];
@@ -244,8 +244,7 @@ function copyMessage() {
             }
         }
     });
-
-    // コピーしたいシンプルな内容を生成
+    
     let copyText = "";
     if (selectedItems.length > 0) {
         selectedItems.forEach(item => {
