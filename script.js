@@ -109,6 +109,7 @@ function getIncludedItems(setId) {
     stack.forEach(id => {
         includedIds.add(id);
         const item = menuData[id];
+        // 階層を深く探索し、すべての下位メニューを取得
         if (item && item.type === 'set') {
             const nestedIds = getIncludedItems(id);
             nestedIds.forEach(nestedId => includedIds.add(nestedId));
@@ -201,9 +202,11 @@ function updateCalculation() {
  * メッセージエリアのテキストを更新
  */
 function updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime) {
-    let message = "";
+    let message = `ご予約メニュー【${formattedTime}時間枠】を選択後、\nコピー内容ご予約時の［備考欄］に貼り付けて下さい。\n\n`;
 
     if (selectedItems.length > 0) {
+        message += "---" + "\n";
+        message += "選択した部位:" + "\n";
         selectedItems.forEach(item => {
             message += `【${item.label}】税込${item.price.toLocaleString()}円\n`;
         });
@@ -226,9 +229,47 @@ function updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime) 
  * テキストエリアの内容をクリップボードにコピー
  */
 function copyMessage() {
+    // 選択されたメニュー情報を取得
+    let totalTime = 0;
+    let totalPrice = 0;
+    const selectedItems = [];
+    checkboxes.forEach(checkbox => {
+        if (checkbox.checked && !checkbox.disabled) {
+            const id = checkbox.id;
+            const item = menuData[id];
+            if (item) {
+                totalTime += item.time;
+                totalPrice += item.price;
+                selectedItems.push(item);
+            }
+        }
+    });
+
+    // コピーしたいシンプルな内容を生成
+    let copyText = "";
+    if (selectedItems.length > 0) {
+        selectedItems.forEach(item => {
+            copyText += `【${item.label}】税込${item.price.toLocaleString()}円\n`;
+        });
+        copyText += "---" + "\n";
+        copyText += `合計時間:${Math.floor(totalTime / 60)}時間${totalTime % 60}分\n`;
+        copyText += `料金合計:${totalPrice.toLocaleString()}円(税込)`;
+    } else {
+        copyText = "選択されたメニューはありません。";
+    }
+
+    // 隠し要素にコピーする内容を一時的に書き込み
+    const tempTextarea = document.createElement('textarea');
+    tempTextarea.value = copyText;
+    document.body.appendChild(tempTextarea);
+
+    // 隠し要素の内容をクリップボードにコピー
+    tempTextarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(tempTextarea);
+
+    // ダイアログはそのまま表示
     if (messageArea) {
-        messageArea.select();
-        document.execCommand('copy');
-        alert("選択内容がコピーされました！\n\nご予約メニュー【●時間枠】を選択後、\nコピー内容ご予約時の［備考欄］に貼り付けて下さい。\n\n---\n選択した部位:\n【部位名】税込●円\n---\n合計時間:●時間●分\n料金合計:●円(税込)\n\n※上記が本来のコピー形式です。");
+        alert(messageArea.value);
     }
 }
