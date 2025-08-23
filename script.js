@@ -195,31 +195,25 @@ function updateCalculation() {
     }
 
     // テキストエリアのメッセージを更新
-    updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime);
+    updateMessageArea(selectedItems, totalTime, totalPrice);
 }
 
 /**
  * メッセージエリアのテキストを更新
  */
-function updateMessageArea(selectedItems, totalTime, totalPrice, formattedTime) {
-    let message = `ご予約メニュー【${formattedTime}時間枠】を選択後、\nコピー内容ご予約時の［備考欄］に貼り付けて下さい。\n\n`;
+function updateMessageArea(selectedItems, totalTime, totalPrice) {
+    let message = '';
 
     if (selectedItems.length > 0) {
-        message += "---" + "\n";
-        message += "選択した部位:" + "\n";
         selectedItems.forEach(item => {
             message += `【${item.label}】税込${item.price.toLocaleString()}円\n`;
         });
         message += "---" + "\n";
-        message += `合計時間:${Math.floor(totalTime / 60)}時間${totalTime % 60}分\n`;
-        message += `料金合計:${totalPrice.toLocaleString()}円(税込)`;
-    } else {
-        message += `\n` + `選択されたメニューはありません。` + `\n\n`;
-        message += `---` + `\n`;
-        message += `合計時間:${Math.floor(totalTime / 60)}時間${totalTime % 60}分\n`;
-        message += `料金合計:${totalPrice.toLocaleString()}円(税込)`;
     }
-    
+
+    message += `合計時間:${Math.floor(totalTime / 60)}時間${totalTime % 60}分\n`;
+    message += `料金合計:${totalPrice.toLocaleString()}円(税込)`;
+
     if (messageArea) {
         messageArea.value = message;
     }
